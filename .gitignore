@@ -1,1 +1,26 @@
-yapsy-app-firebase-adminsdk-fbsvc-798f21ff19.json
+# Firebase service account keys
+*-firebase-adminsdk-*.json
+*-firebase-adminsdk*.json
+
+# General secrets
+*.pem
+*.key
+*.p12
+*.jks
+service-account*.json
+credentials*.json
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
