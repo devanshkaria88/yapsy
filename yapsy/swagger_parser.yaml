@@ -1,0 +1,34 @@
+swagger_parser:
+  schema_path: lib/generated/openapi.json
+  output_directory: lib/generated
+
+  name: yapsy_api
+
+  language: dart
+  json_serializer: json_serializable
+
+  root_client: true
+  root_client_name: YapsyApiClient
+
+  export_file: true
+  put_in_folder: false
+  put_clients_in_folder: true
+  merge_clients: false
+
+  client_postfix: Client
+  path_method_name: false
+
+  enums_to_json: true
+  enums_parent_prefix: true
+  unknown_enum_value: true
+
+  mark_files_as_generated: true
+  original_http_response: false
+
+  # Only include mobile API paths
+  include_paths:
+    - "/api/v1/mobile/**"
+
+  # Exclude admin endpoints that leaked into the spec
+  exclude_tags:
+    - "Admin System"

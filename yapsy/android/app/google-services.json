@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "369795475050",
+    "project_id": "yapsy-app",
+    "storage_bucket": "yapsy-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:369795475050:android:416d725b57ae69528b8c13",
+        "android_client_info": {
+          "package_name": "com.eightspheres.yapsy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "369795475050-p2578mp8qkani6ak8et9bk78e4fk0pjp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNdZRhvOTsS6yL8Kybaxcqm8OV804oWGQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "369795475050-p2578mp8qkani6ak8et9bk78e4fk0pjp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
