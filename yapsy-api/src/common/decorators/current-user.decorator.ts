@@ -5,6 +5,7 @@ export const CurrentUser = createParamDecorator(
   (data: string | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
     const user = request.user;
-    return data ? (user as Record<string, unknown>)?.[data] : user;
+    if (!data) return user;
+    return data in user ? user[data as keyof typeof user] : undefined;
   },
 );
