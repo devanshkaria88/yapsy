@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useSyncExternalStore } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 
 interface ConfettiProps {
   trigger: boolean;
@@ -16,51 +16,77 @@ interface Piece {
   size: number;
 }
 
+interface ConfettiState {
+  show: boolean;
+  pieces: Piece[];
+}
+
 const COLORS = ['#FCB0F3', '#3D05DD', '#B153D7', '#6EEE87', '#FFF4EA', '#C798E8'];
 
+function seededRandom(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+let triggerCount = 0;
+
 function generatePieces(): Piece[] {
+  triggerCount += 1;
+  const rand = seededRandom(triggerCount * 7919);
   return Array.from({ length: 50 }, (_, i) => ({
     id: i,
-    x: Math.random() * 100,
-    color: COLORS[Math.floor(Math.random() * COLORS.length)],
-    delay: Math.random() * 0.5,
-    rotation: Math.random() * 360,
-    size: Math.random() * 8 + 4,
+    x: rand() * 100,
+    color: COLORS[Math.floor(rand() * COLORS.length)],
+    delay: rand() * 0.5,
+    rotation: rand() * 360,
+    size: rand() * 8 + 4,
   }));
 }
 
-function useConfettiState(trigger: boolean) {
-  const stateRef = useRef<{ show: boolean; pieces: Piece[] }>({ show: false, pieces: [] });
-  const listenersRef = useRef(new Set<() => void>());
-  const prevTriggerRef = useRef(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+let state: ConfettiState = { show: false, pieces: [] };
+let prevTrigger = false;
+let hideTimer: ReturnType<typeof setTimeout> | null = null;
+const listeners = new Set<() => void>();
 
-  const subscribe = useCallback((listener: () => void) => {
-    listenersRef.current.add(listener);
-    return () => { listenersRef.current.delete(listener); };
-  }, []);
+function notify() {
+  listeners.forEach((l) => l());
+}
 
-  const notify = useCallback(() => {
-    listenersRef.current.forEach((l) => l());
-  }, []);
+function subscribeFn(listener: () => void) {
+  listeners.add(listener);
+  return () => { listeners.delete(listener); };
+}
 
-  if (trigger && !prevTriggerRef.current) {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    stateRef.current = { show: true, pieces: generatePieces() };
-    timerRef.current = setTimeout(() => {
-      stateRef.current = { ...stateRef.current, show: false };
+function getSnapshotFn(): ConfettiState {
+  return state;
+}
+
+function getServerSnapshotFn(): ConfettiState {
+  return { show: false, pieces: [] };
+}
+
+function processConfettiTrigger(trigger: boolean) {
+  if (trigger && !prevTrigger) {
+    if (hideTimer) clearTimeout(hideTimer);
+    state = { show: true, pieces: generatePieces() };
+    hideTimer = setTimeout(() => {
+      state = { ...state, show: false };
       notify();
     }, 3000);
   }
-  prevTriggerRef.current = trigger;
-
-  const getSnapshot = useCallback(() => stateRef.current, []);
-
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  prevTrigger = trigger;
 }
 
 export function Confetti({ trigger, className }: ConfettiProps) {
-  const { show, pieces } = useConfettiState(trigger);
+  processConfettiTrigger(trigger);
+
+  const subscribe = useCallback(subscribeFn, []);
+  const getSnapshot = useCallback(getSnapshotFn, []);
+  const getServerSnapshot = useCallback(getServerSnapshotFn, []);
+  const { show, pieces } = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   if (!show) return null;
 

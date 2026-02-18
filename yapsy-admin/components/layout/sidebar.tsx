@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect, useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { ChevronDown, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { navigation } from "@/lib/navigation";
@@ -14,14 +14,16 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
+function getIsSuper(): boolean {
+  if (typeof window === "undefined") return false;
+  return isSuperAdmin(getStoredUser());
+}
+
+const subscribe = () => () => {};
+
 export function Sidebar() {
   const pathname = usePathname();
-  const [isSuper, setIsSuper] = useState(false);
-
-  useEffect(() => {
-    const user = getStoredUser();
-    setIsSuper(isSuperAdmin(user));
-  }, []);
+  const isSuper = useSyncExternalStore(subscribe, getIsSuper, () => false);
 
   const visibleNav = useMemo(() => {
     return navigation.filter((item) => !item.superAdminOnly || isSuper);

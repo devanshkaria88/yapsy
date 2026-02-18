@@ -1,7 +1,5 @@
 'use client';
 
-import { useRef } from 'react';
-
 interface Particle {
   id: number;
   x: number;
@@ -17,14 +15,23 @@ interface ParticleFieldProps {
   color?: string;
 }
 
+function seededRandom(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
 function generateParticles(count: number): Particle[] {
+  const rand = seededRandom(42);
   return Array.from({ length: count }, (_, i) => ({
     id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 4 + 2,
-    duration: Math.random() * 20 + 15,
-    delay: Math.random() * 10,
+    x: rand() * 100,
+    y: rand() * 100,
+    size: rand() * 4 + 2,
+    duration: rand() * 20 + 15,
+    delay: rand() * 10,
   }));
 }
 
@@ -33,15 +40,7 @@ export function ParticleField({
   className,
   color = 'rgba(255, 244, 234, 0.3)',
 }: ParticleFieldProps) {
-  const particlesRef = useRef<Particle[] | null>(null);
-  const prevCountRef = useRef(count);
-
-  if (particlesRef.current === null || prevCountRef.current !== count) {
-    particlesRef.current = generateParticles(count);
-    prevCountRef.current = count;
-  }
-
-  const particles = particlesRef.current;
+  const particles = generateParticles(count);
 
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className || ''}`}>
