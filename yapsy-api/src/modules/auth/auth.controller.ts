@@ -24,8 +24,15 @@ export class AuthController {
     description:
       'Exchange a Firebase ID token (from Google/Apple sign-in) for backend JWT tokens. Creates a new user on first login.',
   })
-  @ApiResponse({ status: 201, description: 'Auth successful', type: AuthResponseDto })
-  @ApiResponse({ status: 401, description: 'Invalid or expired Firebase token' })
+  @ApiResponse({
+    status: 201,
+    description: 'Auth successful',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid or expired Firebase token',
+  })
   async firebaseAuth(@Body() dto: FirebaseAuthDto): Promise<AuthResponseDto> {
     return this.authService.firebaseAuth(dto.id_token);
   }
@@ -37,7 +44,11 @@ export class AuthController {
     description:
       'Submit name, date of birth, and gender after first sign-in. Sets is_onboarded to true.',
   })
-  @ApiResponse({ status: 201, description: 'Onboarding completed', type: AuthUserDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Onboarding completed',
+    type: AuthUserDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async onboard(
     @CurrentUser() user: User,
@@ -51,7 +62,11 @@ export class AuthController {
     summary: 'Refresh access token',
     description: 'Exchange a valid refresh token for a new token pair.',
   })
-  @ApiResponse({ status: 201, description: 'Tokens refreshed', type: AuthResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Tokens refreshed',
+    type: AuthResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   async refresh(@Body() dto: RefreshTokenDto): Promise<AuthResponseDto> {
     // Decode the refresh token to extract user ID without verification
@@ -63,7 +78,11 @@ export class AuthController {
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Logout and invalidate refresh token' })
-  @ApiResponse({ status: 201, description: 'Logged out successfully', type: MessageResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Logged out successfully',
+    type: MessageResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async logout(@CurrentUser() user: User): Promise<{ message: string }> {
     await this.authService.logout(user.id);
@@ -76,7 +95,7 @@ export class AuthController {
     try {
       const decoded = JSON.parse(
         Buffer.from(token.split('.')[1], 'base64').toString(),
-      );
+      ) as { sub: string; email: string };
       return { sub: decoded.sub, email: decoded.email };
     } catch {
       throw new Error('Invalid refresh token format');

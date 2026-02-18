@@ -9,7 +9,13 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse, ApiExtraModels, getSchemaPath } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiExtraModels,
+  getSchemaPath,
+} from '@nestjs/swagger';
 import { ParseIntPipe } from '@nestjs/common/pipes';
 import { MobileApi, CurrentUser } from '../../common/decorators';
 import { JwtAuthGuard } from '../../common/guards';
@@ -32,12 +38,13 @@ export class TasksController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new task' })
-  @ApiResponse({ status: 200, description: 'Task created successfully', type: TaskResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Task created successfully',
+    type: TaskResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  create(
-    @CurrentUser('id') userId: string,
-    @Body() dto: CreateTaskDto,
-  ) {
+  create(@CurrentUser('id') userId: string, @Body() dto: CreateTaskDto) {
     return this.tasksService.create(userId, dto);
   }
 
@@ -49,7 +56,10 @@ export class TasksController {
     schema: {
       type: 'object',
       properties: {
-        items: { type: 'array', items: { $ref: getSchemaPath(TaskResponseDto) } },
+        items: {
+          type: 'array',
+          items: { $ref: getSchemaPath(TaskResponseDto) },
+        },
         meta: {
           type: 'object',
           properties: {
@@ -63,16 +73,17 @@ export class TasksController {
     },
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  findAll(
-    @CurrentUser('id') userId: string,
-    @Query() query: TaskQueryDto,
-  ) {
+  findAll(@CurrentUser('id') userId: string, @Query() query: TaskQueryDto) {
     return this.tasksService.findAll(userId, query);
   }
 
   @Get('today')
   @ApiOperation({ summary: 'Get tasks for today' })
-  @ApiResponse({ status: 200, description: "Today's tasks returned successfully", type: [TaskResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: "Today's tasks returned successfully",
+    type: [TaskResponseDto],
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findToday(@CurrentUser('id') userId: string) {
     return this.tasksService.findToday(userId);
@@ -80,7 +91,11 @@ export class TasksController {
 
   @Get('overdue')
   @ApiOperation({ summary: 'Get overdue pending tasks' })
-  @ApiResponse({ status: 200, description: 'Overdue tasks returned successfully', type: [TaskResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'Overdue tasks returned successfully',
+    type: [TaskResponseDto],
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findOverdue(@CurrentUser('id') userId: string) {
     return this.tasksService.findOverdue(userId);
@@ -88,7 +103,11 @@ export class TasksController {
 
   @Get('upcoming')
   @ApiOperation({ summary: 'Get upcoming tasks (next 14 days)' })
-  @ApiResponse({ status: 200, description: 'Upcoming tasks returned successfully', type: [TaskResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'Upcoming tasks returned successfully',
+    type: [TaskResponseDto],
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findUpcoming(@CurrentUser('id') userId: string) {
     return this.tasksService.findUpcoming(userId);
@@ -98,7 +117,11 @@ export class TasksController {
   @ApiOperation({ summary: 'Get tasks for a calendar month' })
   @ApiParam({ name: 'year', description: 'Year (e.g. 2026)' })
   @ApiParam({ name: 'month', description: 'Month (1-12)' })
-  @ApiResponse({ status: 200, description: 'Calendar tasks returned successfully', type: [TaskResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'Calendar tasks returned successfully',
+    type: [TaskResponseDto],
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findCalendarMonth(
     @CurrentUser('id') userId: string,
@@ -111,20 +134,25 @@ export class TasksController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a task by ID' })
   @ApiParam({ name: 'id', description: 'Task ID' })
-  @ApiResponse({ status: 200, description: 'Task returned successfully', type: TaskResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Task returned successfully',
+    type: TaskResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Task not found' })
-  findOne(
-    @CurrentUser('id') userId: string,
-    @Param('id') taskId: string,
-  ) {
+  findOne(@CurrentUser('id') userId: string, @Param('id') taskId: string) {
     return this.tasksService.findOne(userId, taskId);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a task' })
   @ApiParam({ name: 'id', description: 'Task ID' })
-  @ApiResponse({ status: 200, description: 'Task updated successfully', type: TaskResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Task updated successfully',
+    type: TaskResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Task not found' })
   update(
@@ -138,20 +166,25 @@ export class TasksController {
   @Patch(':id/complete')
   @ApiOperation({ summary: 'Mark a task as completed' })
   @ApiParam({ name: 'id', description: 'Task ID' })
-  @ApiResponse({ status: 200, description: 'Task completed successfully', type: TaskResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Task completed successfully',
+    type: TaskResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Task not found' })
-  complete(
-    @CurrentUser('id') userId: string,
-    @Param('id') taskId: string,
-  ) {
+  complete(@CurrentUser('id') userId: string, @Param('id') taskId: string) {
     return this.tasksService.complete(userId, taskId);
   }
 
   @Post(':id/rollover')
   @ApiOperation({ summary: 'Roll over a task to a new date' })
   @ApiParam({ name: 'id', description: 'Task ID' })
-  @ApiResponse({ status: 200, description: 'Task rolled over successfully', type: TaskResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Task rolled over successfully',
+    type: TaskResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Task not found' })
   rollover(
@@ -165,13 +198,14 @@ export class TasksController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a task (soft delete)' })
   @ApiParam({ name: 'id', description: 'Task ID' })
-  @ApiResponse({ status: 200, description: 'Task deleted successfully', type: MessageResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Task deleted successfully',
+    type: MessageResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Task not found' })
-  async remove(
-    @CurrentUser('id') userId: string,
-    @Param('id') taskId: string,
-  ) {
+  async remove(@CurrentUser('id') userId: string, @Param('id') taskId: string) {
     await this.tasksService.remove(userId, taskId);
     return { message: 'Task deleted' };
   }

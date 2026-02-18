@@ -9,11 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { AdminApi } from '../../common/decorators';
 import { AdminJwtAuthGuard } from '../../common/guards';
 import { PaginationDto } from '../../common/dto/pagination.dto';
@@ -39,7 +35,10 @@ export class AdminPromoCodesController {
   @Post()
   @ApiOperation({ summary: 'Create a new promo code' })
   @ApiResponse({ status: 201, description: 'Promo code created successfully' })
-  @ApiResponse({ status: 400, description: 'Validation error or code already exists' })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation error or code already exists',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   create(@Body() dto: CreatePromoDto): Promise<PromoCode> {
     return this.promoCodesService.create(dto);
@@ -48,7 +47,10 @@ export class AdminPromoCodesController {
   @Get(':id/redemptions')
   @ApiOperation({ summary: 'Get redemptions for a promo code' })
   @ApiParam({ name: 'id', description: 'Promo code UUID' })
-  @ApiResponse({ status: 200, description: 'List of redemptions with user info' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of redemptions with user info',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Promo code not found' })
   getRedemptions(@Param('id') id: string): Promise<UserPromoRedemption[]> {
@@ -71,7 +73,10 @@ export class AdminPromoCodesController {
   @Delete(':id')
   @ApiOperation({ summary: 'Deactivate a promo code' })
   @ApiParam({ name: 'id', description: 'Promo code UUID' })
-  @ApiResponse({ status: 200, description: 'Promo code deactivated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Promo code deactivated successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Promo code not found' })
   async deactivate(@Param('id') id: string): Promise<{ message: string }> {

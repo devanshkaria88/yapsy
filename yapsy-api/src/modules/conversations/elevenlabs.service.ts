@@ -30,10 +30,7 @@ export class ElevenlabsService {
   buildSessionConfig(user: User, tasks: Task[]): Record<string, unknown> {
     const todayTasksPrompt = tasks.length
       ? tasks
-          .map(
-            (t) =>
-              `- [${t.id}] ${t.title} (${t.status}, ${t.priority})`,
-          )
+          .map((t) => `- [${t.id}] ${t.title} (${t.status}, ${t.priority})`)
           .join('\n')
       : 'No tasks scheduled for today.';
 

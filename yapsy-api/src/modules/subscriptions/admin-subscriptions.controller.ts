@@ -64,7 +64,10 @@ export class AdminSubscriptionsController {
 
   @Get('stats')
   @ApiOperation({ summary: 'Get subscription statistics' })
-  @ApiResponse({ status: 200, description: 'Subscription stats (total pro, free, MRR)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Subscription stats (total pro, free, MRR)',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   getStats() {
     return this.subscriptionsService.getStats();

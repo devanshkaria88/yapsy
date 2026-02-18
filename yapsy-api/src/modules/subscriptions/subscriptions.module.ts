@@ -10,9 +10,7 @@ import { SubscriptionsController } from './subscriptions.controller';
 import { WebhookController } from './webhook.controller';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([SubscriptionPlan, WebhookEvent, User]),
-  ],
+  imports: [TypeOrmModule.forFeature([SubscriptionPlan, WebhookEvent, User])],
   controllers: [
     SubscriptionsController,
     AdminSubscriptionsController,

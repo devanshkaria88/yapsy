@@ -17,16 +17,26 @@ export class AdminAuthController {
     description:
       'Exchange a Firebase ID token for admin JWT tokens. The email must exist in admin_users table.',
   })
-  @ApiResponse({ status: 201, description: 'Admin auth successful', type: AdminAuthResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Admin auth successful',
+    type: AdminAuthResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Invalid Firebase token' })
   @ApiResponse({ status: 403, description: 'No admin account for this email' })
-  async firebaseAuth(@Body() dto: FirebaseAuthDto): Promise<AdminAuthResponseDto> {
+  async firebaseAuth(
+    @Body() dto: FirebaseAuthDto,
+  ): Promise<AdminAuthResponseDto> {
     return this.authService.adminFirebaseAuth(dto.id_token);
   }
 
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh admin access token' })
-  @ApiResponse({ status: 201, description: 'Tokens refreshed', type: AdminAuthResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Tokens refreshed',
+    type: AdminAuthResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   async refresh(@Body() dto: RefreshTokenDto): Promise<AdminAuthResponseDto> {
     const payload = this.decodeRefreshToken(dto.refresh_token);
@@ -48,7 +58,7 @@ export class AdminAuthController {
     try {
       const decoded = JSON.parse(
         Buffer.from(token.split('.')[1], 'base64').toString(),
-      );
+      ) as { sub: string; email: string };
       return { sub: decoded.sub, email: decoded.email };
     } catch {
       throw new Error('Invalid refresh token format');

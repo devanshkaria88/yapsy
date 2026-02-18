@@ -36,6 +36,11 @@ import { AdminUsersService } from './admin-users.service';
     SystemController,
     AdminUsersController,
   ],
-  providers: [DashboardService, AnalyticsService, SystemService, AdminUsersService],
+  providers: [
+    DashboardService,
+    AnalyticsService,
+    SystemService,
+    AdminUsersService,
+  ],
 })
 export class AdminModule {}

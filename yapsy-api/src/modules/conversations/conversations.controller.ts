@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { MobileApi, CurrentUser } from '../../common/decorators';
 import { JwtAuthGuard } from '../../common/guards';
@@ -25,7 +18,11 @@ export class ConversationsController {
 
   @Get('prepare')
   @ApiOperation({ summary: 'Prepare a voice session (signed URL + config)' })
-  @ApiResponse({ status: 200, description: 'Session prepared successfully', type: PrepareSessionResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Session prepared successfully',
+    type: PrepareSessionResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 402, description: 'Weekly limit reached (free tier)' })
   prepare(@CurrentUser('id') userId: string) {
@@ -34,7 +31,11 @@ export class ConversationsController {
 
   @Post()
   @ApiOperation({ summary: 'Save a conversation and create journal entry' })
-  @ApiResponse({ status: 201, description: 'Conversation saved, journal created', type: JournalResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Conversation saved, journal created',
+    type: JournalResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   saveConversation(
     @CurrentUser('id') userId: string,
@@ -46,7 +47,11 @@ export class ConversationsController {
   @Get(':id/status')
   @ApiOperation({ summary: 'Get journal processing status' })
   @ApiParam({ name: 'id', description: 'Journal ID' })
-  @ApiResponse({ status: 200, description: 'Processing status returned', type: ProcessingStatusResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Processing status returned',
+    type: ProcessingStatusResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Journal not found' })
   getProcessingStatus(

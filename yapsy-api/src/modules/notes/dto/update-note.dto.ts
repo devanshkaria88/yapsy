@@ -7,7 +7,11 @@ export class UpdateNoteDto {
   @IsOptional()
   content?: string;
 
-  @ApiPropertyOptional({ description: 'Follow-up date', example: '2026-02-20', type: String })
+  @ApiPropertyOptional({
+    description: 'Follow-up date',
+    example: '2026-02-20',
+    type: String,
+  })
   @IsDateString()
   @IsOptional()
   follow_up_date?: string;

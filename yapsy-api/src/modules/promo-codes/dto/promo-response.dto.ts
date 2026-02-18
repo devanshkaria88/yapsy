@@ -46,7 +46,10 @@ export class ValidatePromoResponseDto {
   @ApiProperty({ example: 14950, description: 'Discount amount in paise' })
   discountAmount: number;
 
-  @ApiProperty({ example: 14950, description: 'Final price after discount in paise' })
+  @ApiProperty({
+    example: 14950,
+    description: 'Final price after discount in paise',
+  })
   finalPrice: number;
 }
 

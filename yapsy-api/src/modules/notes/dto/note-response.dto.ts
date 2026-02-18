@@ -10,7 +10,11 @@ export class NoteResponseDto {
   @ApiProperty({ example: 'Remember to follow up on the meeting' })
   content: string;
 
-  @ApiPropertyOptional({ nullable: true, format: 'date', example: '2026-02-20' })
+  @ApiPropertyOptional({
+    nullable: true,
+    format: 'date',
+    example: '2026-02-20',
+  })
   follow_up_date: string | null;
 
   @ApiProperty({ example: false })

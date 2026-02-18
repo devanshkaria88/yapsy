@@ -7,15 +7,14 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiOperation,
-  ApiParam,
-  ApiQuery,
-  ApiResponse,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { MobileApi, CurrentUser } from '../../common/decorators';
 import { JwtAuthGuard } from '../../common/guards';
-import { RedeemPromoDto, ValidatePromoResponseDto, RedeemPromoResponseDto } from './dto';
+import {
+  RedeemPromoDto,
+  ValidatePromoResponseDto,
+  RedeemPromoResponseDto,
+} from './dto';
 import { PromoCodesService } from './promo-codes.service';
 
 @Controller('api/v1/mobile/promo')
@@ -32,8 +31,15 @@ export class PromoCodesController {
     required: false,
     description: 'Original price in paise for discount calculation preview',
   })
-  @ApiResponse({ status: 200, description: 'Promo code is valid with discount info', type: ValidatePromoResponseDto })
-  @ApiResponse({ status: 400, description: 'Promo expired, inactive, or max uses reached' })
+  @ApiResponse({
+    status: 200,
+    description: 'Promo code is valid with discount info',
+    type: ValidatePromoResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Promo expired, inactive, or max uses reached',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Promo code not found' })
   validate(
@@ -46,8 +52,15 @@ export class PromoCodesController {
 
   @Post('redeem')
   @ApiOperation({ summary: 'Redeem a promo code' })
-  @ApiResponse({ status: 201, description: 'Promo code redeemed successfully', type: RedeemPromoResponseDto })
-  @ApiResponse({ status: 400, description: 'Promo invalid, expired, or max uses reached' })
+  @ApiResponse({
+    status: 201,
+    description: 'Promo code redeemed successfully',
+    type: RedeemPromoResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Promo invalid, expired, or max uses reached',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Promo code not found' })
   @ApiResponse({ status: 409, description: 'Promo already redeemed by user' })

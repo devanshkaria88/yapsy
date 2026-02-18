@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
   GoogleGenerativeAI,
-  FunctionDeclarationSchemaType,
+  SchemaType,
   type FunctionDeclaration,
 } from '@google/generative-ai';
 import { ConcernLevel, TaskPriority } from '../../common/enums';
@@ -22,7 +22,8 @@ export class LlmProcessorService {
     private readonly configService: ConfigService,
     private readonly tasksService: TasksService,
     private readonly notesService: NotesService,
-    @InjectRepository(Journal) private readonly journalsRepo: Repository<Journal>,
+    @InjectRepository(Journal)
+    private readonly journalsRepo: Repository<Journal>,
     @InjectRepository(User) private readonly usersRepo: Repository<User>,
   ) {
     const apiKey = this.configService.get<string>('gemini.apiKey') || '';
@@ -35,11 +36,17 @@ export class LlmProcessorService {
         name: 'create_task',
         description: 'Create a new task for the user',
         parameters: {
-          type: FunctionDeclarationSchemaType.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
-            title: { type: FunctionDeclarationSchemaType.STRING },
-            scheduled_date: { type: FunctionDeclarationSchemaType.STRING, description: 'Date in YYYY-MM-DD format' },
-            priority: { type: FunctionDeclarationSchemaType.STRING, description: 'One of: low, medium, high' },
+            title: { type: SchemaType.STRING },
+            scheduled_date: {
+              type: SchemaType.STRING,
+              description: 'Date in YYYY-MM-DD format',
+            },
+            priority: {
+              type: SchemaType.STRING,
+              description: 'One of: low, medium, high',
+            },
           },
           required: ['title', 'scheduled_date'],
         },
@@ -48,9 +55,9 @@ export class LlmProcessorService {
         name: 'complete_task',
         description: 'Mark a task as completed',
         parameters: {
-          type: FunctionDeclarationSchemaType.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
-            task_id: { type: FunctionDeclarationSchemaType.STRING },
+            task_id: { type: SchemaType.STRING },
           },
           required: ['task_id'],
         },
@@ -59,11 +66,14 @@ export class LlmProcessorService {
         name: 'reschedule_task',
         description: 'Reschedule a task to a new date',
         parameters: {
-          type: FunctionDeclarationSchemaType.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
-            task_id: { type: FunctionDeclarationSchemaType.STRING },
-            new_date: { type: FunctionDeclarationSchemaType.STRING, description: 'Date in YYYY-MM-DD format' },
-            reason: { type: FunctionDeclarationSchemaType.STRING },
+            task_id: { type: SchemaType.STRING },
+            new_date: {
+              type: SchemaType.STRING,
+              description: 'Date in YYYY-MM-DD format',
+            },
+            reason: { type: SchemaType.STRING },
           },
           required: ['task_id', 'new_date'],
         },
@@ -72,10 +82,13 @@ export class LlmProcessorService {
         name: 'add_note',
         description: 'Add a note for the user',
         parameters: {
-          type: FunctionDeclarationSchemaType.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
-            content: { type: FunctionDeclarationSchemaType.STRING },
-            follow_up_date: { type: FunctionDeclarationSchemaType.STRING, description: 'Date in YYYY-MM-DD format' },
+            content: { type: SchemaType.STRING },
+            follow_up_date: {
+              type: SchemaType.STRING,
+              description: 'Date in YYYY-MM-DD format',
+            },
           },
           required: ['content'],
         },
@@ -89,8 +102,10 @@ export class LlmProcessorService {
     transcript: unknown[],
   ): Promise<void> {
     try {
-      const todayTasks = await this.tasksService.findTodayTasksForContext(userId);
-      const modelName = this.configService.get<string>('gemini.model') || 'gemini-2.0-flash';
+      const todayTasks =
+        await this.tasksService.findTodayTasksForContext(userId);
+      const modelName =
+        this.configService.get<string>('gemini.model') || 'gemini-2.0-flash';
 
       const systemPrompt = `You are analyzing a voice journal transcript. The user talked about their day.
 
@@ -146,7 +161,10 @@ Return a JSON object with:
             try {
               const jsonMatch = part.text.match(/\{[\s\S]*\}/);
               if (jsonMatch) {
-                insights = { ...insights, ...JSON.parse(jsonMatch[0]) };
+                insights = {
+                  ...insights,
+                  ...(JSON.parse(jsonMatch[0]) as Record<string, unknown>),
+                };
               }
             } catch {
               /* ignore parse errors */
@@ -227,7 +245,7 @@ Return a JSON object with:
         });
         actions.push({
           type: 'reschedule_task',
-          details: `Rescheduled task to ${input.new_date}`,
+          details: `Rescheduled task to ${String(input.new_date)}`,
           task_id: taskId,
         });
         break;
@@ -253,7 +271,9 @@ Return a JSON object with:
     if (!user) return;
 
     const today = new Date().toISOString().split('T')[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000)
+      .toISOString()
+      .split('T')[0];
     const lastCheckIn = user.last_check_in_date?.toString();
 
     if (lastCheckIn === yesterday) {
@@ -272,7 +292,8 @@ Return a JSON object with:
     journals: Journal[],
     taskCompletionRate: number,
   ): Promise<string> {
-    const modelName = this.configService.get<string>('gemini.model') || 'gemini-2.0-flash';
+    const modelName =
+      this.configService.get<string>('gemini.model') || 'gemini-2.0-flash';
 
     const journalSummaries = journals.map((j) => ({
       date: j.date,

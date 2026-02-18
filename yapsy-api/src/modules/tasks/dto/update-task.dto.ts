@@ -13,7 +13,11 @@ export class UpdateTaskDto {
   @IsOptional()
   description?: string;
 
-  @ApiPropertyOptional({ description: 'Scheduled date', example: '2026-02-20', type: String })
+  @ApiPropertyOptional({
+    description: 'Scheduled date',
+    example: '2026-02-20',
+    type: String,
+  })
   @IsDateString()
   @IsOptional()
   scheduled_date?: string;

@@ -1,25 +1,43 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class Baseline1771255088224 implements MigrationInterface {
-    name = 'Baseline1771255088224'
+  name = 'Baseline1771255088224';
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        // Extension
-        await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    // Extension
+    await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
 
-        // Enums
-        await queryRunner.query(`CREATE TYPE "public"."admin_users_role_enum" AS ENUM('super_admin', 'moderator')`);
-        await queryRunner.query(`CREATE TYPE "public"."users_gender_enum" AS ENUM('male', 'female', 'non_binary', 'prefer_not_to_say')`);
-        await queryRunner.query(`CREATE TYPE "public"."users_subscription_status_enum" AS ENUM('free', 'pro', 'cancelled', 'paused', 'past_due')`);
-        await queryRunner.query(`CREATE TYPE "public"."tasks_status_enum" AS ENUM('pending', 'completed', 'rolled_over', 'cancelled')`);
-        await queryRunner.query(`CREATE TYPE "public"."tasks_priority_enum" AS ENUM('low', 'medium', 'high')`);
-        await queryRunner.query(`CREATE TYPE "public"."journals_concern_level_enum" AS ENUM('low', 'medium', 'high')`);
-        await queryRunner.query(`CREATE TYPE "public"."promo_codes_type_enum" AS ENUM('percentage', 'flat', 'set_price')`);
-        await queryRunner.query(`CREATE TYPE "public"."subscription_plans_interval_enum" AS ENUM('monthly', 'yearly')`);
-        await queryRunner.query(`CREATE TYPE "public"."mood_insights_mood_trend_enum" AS ENUM('improving', 'stable', 'declining')`);
+    // Enums
+    await queryRunner.query(
+      `CREATE TYPE "public"."admin_users_role_enum" AS ENUM('super_admin', 'moderator')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."users_gender_enum" AS ENUM('male', 'female', 'non_binary', 'prefer_not_to_say')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."users_subscription_status_enum" AS ENUM('free', 'pro', 'cancelled', 'paused', 'past_due')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."tasks_status_enum" AS ENUM('pending', 'completed', 'rolled_over', 'cancelled')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."tasks_priority_enum" AS ENUM('low', 'medium', 'high')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."journals_concern_level_enum" AS ENUM('low', 'medium', 'high')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."promo_codes_type_enum" AS ENUM('percentage', 'flat', 'set_price')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."subscription_plans_interval_enum" AS ENUM('monthly', 'yearly')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."mood_insights_mood_trend_enum" AS ENUM('improving', 'stable', 'declining')`,
+    );
 
-        // Tables
-        await queryRunner.query(`
+    // Tables
+    await queryRunner.query(`
             CREATE TABLE "admin_users" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "email" character varying NOT NULL,
@@ -35,7 +53,7 @@ export class Baseline1771255088224 implements MigrationInterface {
             )
         `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "users" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "email" character varying NOT NULL,
@@ -66,7 +84,7 @@ export class Baseline1771255088224 implements MigrationInterface {
             )
         `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "tasks" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "user_id" uuid NOT NULL,
@@ -85,7 +103,7 @@ export class Baseline1771255088224 implements MigrationInterface {
             )
         `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "journals" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "user_id" uuid NOT NULL,
@@ -110,7 +128,7 @@ export class Baseline1771255088224 implements MigrationInterface {
             )
         `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "notes" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "user_id" uuid NOT NULL,
@@ -125,7 +143,7 @@ export class Baseline1771255088224 implements MigrationInterface {
             )
         `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "promo_codes" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "code" character varying NOT NULL,
@@ -144,7 +162,7 @@ export class Baseline1771255088224 implements MigrationInterface {
             )
         `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "user_promo_redemptions" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "user_id" uuid NOT NULL,
@@ -156,7 +174,7 @@ export class Baseline1771255088224 implements MigrationInterface {
             )
         `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "subscription_plans" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "name" character varying NOT NULL,
@@ -172,7 +190,7 @@ export class Baseline1771255088224 implements MigrationInterface {
             )
         `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "mood_insights" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "user_id" uuid NOT NULL,
@@ -187,7 +205,7 @@ export class Baseline1771255088224 implements MigrationInterface {
             )
         `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "webhook_events" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "source" character varying NOT NULL,
@@ -202,47 +220,81 @@ export class Baseline1771255088224 implements MigrationInterface {
             )
         `);
 
-        // Foreign keys
-        await queryRunner.query(`ALTER TABLE "tasks" ADD CONSTRAINT "FK_db55af84c226af9dce09487b61b" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "tasks" ADD CONSTRAINT "FK_a5386ec73352e3a0d91adbde6e8" FOREIGN KEY ("rolled_from_id") REFERENCES "tasks"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "journals" ADD CONSTRAINT "FK_dcd8f26897887ea1ca19e9b910a" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "notes" ADD CONSTRAINT "FK_7708dcb62ff332f0eaf9f0743a7" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "user_promo_redemptions" ADD CONSTRAINT "FK_634c729f4861d5a9283d6c1eccf" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "user_promo_redemptions" ADD CONSTRAINT "FK_860921c1d9231f7f2998db58056" FOREIGN KEY ("promo_code_id") REFERENCES "promo_codes"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "mood_insights" ADD CONSTRAINT "FK_75186c613ced3909693dde6bc28" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
-    }
+    // Foreign keys
+    await queryRunner.query(
+      `ALTER TABLE "tasks" ADD CONSTRAINT "FK_db55af84c226af9dce09487b61b" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "tasks" ADD CONSTRAINT "FK_a5386ec73352e3a0d91adbde6e8" FOREIGN KEY ("rolled_from_id") REFERENCES "tasks"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "journals" ADD CONSTRAINT "FK_dcd8f26897887ea1ca19e9b910a" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "notes" ADD CONSTRAINT "FK_7708dcb62ff332f0eaf9f0743a7" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "user_promo_redemptions" ADD CONSTRAINT "FK_634c729f4861d5a9283d6c1eccf" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "user_promo_redemptions" ADD CONSTRAINT "FK_860921c1d9231f7f2998db58056" FOREIGN KEY ("promo_code_id") REFERENCES "promo_codes"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "mood_insights" ADD CONSTRAINT "FK_75186c613ced3909693dde6bc28" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        // Drop foreign keys
-        await queryRunner.query(`ALTER TABLE "mood_insights" DROP CONSTRAINT "FK_75186c613ced3909693dde6bc28"`);
-        await queryRunner.query(`ALTER TABLE "user_promo_redemptions" DROP CONSTRAINT "FK_860921c1d9231f7f2998db58056"`);
-        await queryRunner.query(`ALTER TABLE "user_promo_redemptions" DROP CONSTRAINT "FK_634c729f4861d5a9283d6c1eccf"`);
-        await queryRunner.query(`ALTER TABLE "notes" DROP CONSTRAINT "FK_7708dcb62ff332f0eaf9f0743a7"`);
-        await queryRunner.query(`ALTER TABLE "journals" DROP CONSTRAINT "FK_dcd8f26897887ea1ca19e9b910a"`);
-        await queryRunner.query(`ALTER TABLE "tasks" DROP CONSTRAINT "FK_a5386ec73352e3a0d91adbde6e8"`);
-        await queryRunner.query(`ALTER TABLE "tasks" DROP CONSTRAINT "FK_db55af84c226af9dce09487b61b"`);
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    // Drop foreign keys
+    await queryRunner.query(
+      `ALTER TABLE "mood_insights" DROP CONSTRAINT "FK_75186c613ced3909693dde6bc28"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "user_promo_redemptions" DROP CONSTRAINT "FK_860921c1d9231f7f2998db58056"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "user_promo_redemptions" DROP CONSTRAINT "FK_634c729f4861d5a9283d6c1eccf"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "notes" DROP CONSTRAINT "FK_7708dcb62ff332f0eaf9f0743a7"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "journals" DROP CONSTRAINT "FK_dcd8f26897887ea1ca19e9b910a"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "tasks" DROP CONSTRAINT "FK_a5386ec73352e3a0d91adbde6e8"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "tasks" DROP CONSTRAINT "FK_db55af84c226af9dce09487b61b"`,
+    );
 
-        // Drop tables
-        await queryRunner.query(`DROP TABLE "webhook_events"`);
-        await queryRunner.query(`DROP TABLE "mood_insights"`);
-        await queryRunner.query(`DROP TABLE "subscription_plans"`);
-        await queryRunner.query(`DROP TABLE "user_promo_redemptions"`);
-        await queryRunner.query(`DROP TABLE "promo_codes"`);
-        await queryRunner.query(`DROP TABLE "notes"`);
-        await queryRunner.query(`DROP TABLE "journals"`);
-        await queryRunner.query(`DROP TABLE "tasks"`);
-        await queryRunner.query(`DROP TABLE "users"`);
-        await queryRunner.query(`DROP TABLE "admin_users"`);
+    // Drop tables
+    await queryRunner.query(`DROP TABLE "webhook_events"`);
+    await queryRunner.query(`DROP TABLE "mood_insights"`);
+    await queryRunner.query(`DROP TABLE "subscription_plans"`);
+    await queryRunner.query(`DROP TABLE "user_promo_redemptions"`);
+    await queryRunner.query(`DROP TABLE "promo_codes"`);
+    await queryRunner.query(`DROP TABLE "notes"`);
+    await queryRunner.query(`DROP TABLE "journals"`);
+    await queryRunner.query(`DROP TABLE "tasks"`);
+    await queryRunner.query(`DROP TABLE "users"`);
+    await queryRunner.query(`DROP TABLE "admin_users"`);
 
-        // Drop enums
-        await queryRunner.query(`DROP TYPE "public"."mood_insights_mood_trend_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."subscription_plans_interval_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."promo_codes_type_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."journals_concern_level_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."tasks_priority_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."tasks_status_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."users_subscription_status_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."users_gender_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."admin_users_role_enum"`);
-    }
+    // Drop enums
+    await queryRunner.query(
+      `DROP TYPE "public"."mood_insights_mood_trend_enum"`,
+    );
+    await queryRunner.query(
+      `DROP TYPE "public"."subscription_plans_interval_enum"`,
+    );
+    await queryRunner.query(`DROP TYPE "public"."promo_codes_type_enum"`);
+    await queryRunner.query(`DROP TYPE "public"."journals_concern_level_enum"`);
+    await queryRunner.query(`DROP TYPE "public"."tasks_priority_enum"`);
+    await queryRunner.query(`DROP TYPE "public"."tasks_status_enum"`);
+    await queryRunner.query(
+      `DROP TYPE "public"."users_subscription_status_enum"`,
+    );
+    await queryRunner.query(`DROP TYPE "public"."users_gender_enum"`);
+    await queryRunner.query(`DROP TYPE "public"."admin_users_role_enum"`);
+  }
 }

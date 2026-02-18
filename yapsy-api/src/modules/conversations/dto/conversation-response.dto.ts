@@ -13,6 +13,9 @@ export class PrepareSessionResponseDto {
 }
 
 export class ProcessingStatusResponseDto {
-  @ApiProperty({ example: 'completed', enum: ['pending', 'processing', 'completed', 'failed'] })
+  @ApiProperty({
+    example: 'completed',
+    enum: ['pending', 'processing', 'completed', 'failed'],
+  })
   processing_status: string;
 }

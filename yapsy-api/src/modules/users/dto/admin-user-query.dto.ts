@@ -9,7 +9,10 @@ export class AdminUserQueryDto extends PaginationDto {
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ enum: SubscriptionStatus, description: 'Filter by subscription status' })
+  @ApiPropertyOptional({
+    enum: SubscriptionStatus,
+    description: 'Filter by subscription status',
+  })
   @IsOptional()
   @IsEnum(SubscriptionStatus)
   subscription_status?: SubscriptionStatus;
@@ -19,7 +22,11 @@ export class AdminUserQueryDto extends PaginationDto {
   @IsString()
   sort_by?: string = 'created_at';
 
-  @ApiPropertyOptional({ enum: ['ASC', 'DESC'], default: 'DESC', description: 'Sort order' })
+  @ApiPropertyOptional({
+    enum: ['ASC', 'DESC'],
+    default: 'DESC',
+    description: 'Sort order',
+  })
   @IsOptional()
   @IsIn(['ASC', 'DESC'])
   sort_order?: 'ASC' | 'DESC' = 'DESC';

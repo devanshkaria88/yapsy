@@ -2,7 +2,9 @@ import * as Joi from 'joi';
 
 export const validationSchema = Joi.object({
   // App
-  NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+  NODE_ENV: Joi.string()
+    .valid('development', 'production', 'test')
+    .default('development'),
   PORT: Joi.number().default(3000),
   API_PREFIX: Joi.string().default('api/v1'),
 
@@ -51,8 +53,12 @@ export const validationSchema = Joi.object({
   ADMIN_DEFAULT_EMAIL: Joi.string().email().default('admin@yapsy.app'),
 
   // CORS
-  CORS_ORIGINS: Joi.string().default('http://localhost:3001,http://localhost:8080'),
+  CORS_ORIGINS: Joi.string().default(
+    'http://localhost:3001,http://localhost:8080',
+  ),
 
   // Logging
-  LOG_LEVEL: Joi.string().valid('debug', 'info', 'warn', 'error').default('debug'),
+  LOG_LEVEL: Joi.string()
+    .valid('debug', 'info', 'warn', 'error')
+    .default('debug'),
 });

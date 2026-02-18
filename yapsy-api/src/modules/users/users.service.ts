@@ -31,9 +31,10 @@ export class UsersService {
     });
   }
 
-  async getProfile(userId: string) {
+  async getProfile(userId: string): Promise<Omit<User, 'refresh_token_hash'>> {
     const user = await this.findById(userId);
     const { refresh_token_hash, ...profile } = user;
+    void refresh_token_hash;
     return profile;
   }
 
@@ -64,9 +65,18 @@ export class UsersService {
   async findAllAdmin(
     query: AdminUserQueryDto,
   ): Promise<PaginatedResult<Omit<User, 'refresh_token_hash'>>> {
-    const { page = 1, limit = 20, search, subscription_status, sort_by = 'created_at', sort_order = 'DESC' } = query;
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      subscription_status,
+      sort_by = 'created_at',
+      sort_order = 'DESC',
+    } = query;
 
-    const safeSortBy = this.SORTABLE_COLUMNS.includes(sort_by as (typeof this.SORTABLE_COLUMNS)[number])
+    const safeSortBy = this.SORTABLE_COLUMNS.includes(
+      sort_by as (typeof this.SORTABLE_COLUMNS)[number],
+    )
       ? sort_by
       : 'created_at';
 
@@ -98,10 +108,9 @@ export class UsersService {
       .orderBy(`user.${safeSortBy}`, sort_order);
 
     if (search) {
-      qb.andWhere(
-        '(user.email ILIKE :search OR user.name ILIKE :search)',
-        { search: `%${search}%` },
-      );
+      qb.andWhere('(user.email ILIKE :search OR user.name ILIKE :search)', {
+        search: `%${search}%`,
+      });
     }
 
     if (subscription_status) {
@@ -121,6 +130,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
     const { refresh_token_hash, ...profile } = user;
+    void refresh_token_hash;
     return profile;
   }
 

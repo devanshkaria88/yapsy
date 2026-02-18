@@ -6,6 +6,8 @@ export class RedeemPromoDto {
   @ApiProperty({ description: 'Promo code to redeem', example: 'SAVE20' })
   @IsString()
   @IsNotEmpty()
-  @Transform(({ value }) => (typeof value === 'string' ? value.toUpperCase() : value))
+  @Transform(({ value }: { value: unknown }): string =>
+    typeof value === 'string' ? value.toUpperCase() : String(value),
+  )
   code: string;
 }

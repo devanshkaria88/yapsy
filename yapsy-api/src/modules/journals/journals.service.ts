@@ -3,11 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
 import { Journal } from './entities/journal.entity';
-import {
-  JournalQueryDto,
-  JournalSearchDto,
-  JournalStatsQueryDto,
-} from './dto';
+import { JournalQueryDto, JournalSearchDto } from './dto';
 
 @Injectable()
 export class JournalsService {
@@ -103,7 +99,7 @@ export class JournalsService {
       .createQueryBuilder('journal')
       .where('journal.user_id = :userId', { userId })
       .andWhere(
-        '(journal.summary ILIKE :keyword OR array_to_string(journal.themes, \' \') ILIKE :keyword)',
+        "(journal.summary ILIKE :keyword OR array_to_string(journal.themes, ' ') ILIKE :keyword)",
         { keyword },
       )
       .orderBy('journal.date', 'DESC')

@@ -30,7 +30,9 @@ async function seed() {
   const adminRepo = dataSource.getRepository(AdminUser);
   const adminEmail = process.env.ADMIN_DEFAULT_EMAIL ?? 'admin@yapsy.app';
 
-  const existingAdmin = await adminRepo.findOne({ where: { email: adminEmail } });
+  const existingAdmin = await adminRepo.findOne({
+    where: { email: adminEmail },
+  });
   if (!existingAdmin) {
     const admin = adminRepo.create({
       email: adminEmail,
@@ -39,7 +41,9 @@ async function seed() {
       // firebase_uid is null — will be set on first Firebase login
     });
     await adminRepo.save(admin);
-    console.log(`Created admin user: ${adminEmail} (login via Firebase to link UID)`);
+    console.log(
+      `Created admin user: ${adminEmail} (login via Firebase to link UID)`,
+    );
   } else {
     console.log(`Admin user already exists: ${adminEmail}`);
   }
@@ -83,7 +87,9 @@ async function seed() {
     if (!existing) {
       const plan = planRepo.create(planData);
       await planRepo.save(plan);
-      console.log(`Created plan: ${planData.name} (₹${planData.price_amount / 100})`);
+      console.log(
+        `Created plan: ${planData.name} (₹${planData.price_amount / 100})`,
+      );
     } else {
       console.log(`Plan already exists: ${planData.name}`);
     }
@@ -118,11 +124,15 @@ async function seed() {
   ];
 
   for (const promoData of promos) {
-    const existing = await promoRepo.findOne({ where: { code: promoData.code } });
+    const existing = await promoRepo.findOne({
+      where: { code: promoData.code },
+    });
     if (!existing) {
       const promo = promoRepo.create(promoData);
       await promoRepo.save(promo);
-      console.log(`Created promo: ${promoData.code} (${promoData.type}: ${promoData.value})`);
+      console.log(
+        `Created promo: ${promoData.code} (${promoData.type}: ${promoData.value})`,
+      );
     } else {
       console.log(`Promo already exists: ${promoData.code}`);
     }

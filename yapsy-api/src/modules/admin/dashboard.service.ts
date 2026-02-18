@@ -60,10 +60,7 @@ export class DashboardService {
       mrr = Math.round(activePro * avgMonthlyPrice);
     }
 
-    const total_check_ins = parseInt(
-      totalCheckInsResult?.sum ?? '0',
-      10,
-    );
+    const total_check_ins = parseInt(totalCheckInsResult?.sum ?? '0', 10);
 
     return {
       total_users: totalUsers,
@@ -81,11 +78,11 @@ export class DashboardService {
 
     const result = await this.userRepo
       .createQueryBuilder('u')
-      .select("DATE(u.created_at)::text", "date")
-      .addSelect("COUNT(*)", "count")
-      .where("u.created_at >= :start", { start: startStr })
-      .groupBy("DATE(u.created_at)")
-      .orderBy("date", "ASC")
+      .select('DATE(u.created_at)::text', 'date')
+      .addSelect('COUNT(*)', 'count')
+      .where('u.created_at >= :start', { start: startStr })
+      .groupBy('DATE(u.created_at)')
+      .orderBy('date', 'ASC')
       .getRawMany<{ date: string; count: string }>();
 
     return result.map((r) => ({
@@ -101,11 +98,11 @@ export class DashboardService {
 
     const result = await this.journalRepo
       .createQueryBuilder('j')
-      .select("j.date", "date")
-      .addSelect("COUNT(*)", "count")
-      .where("j.date >= :start", { start: startStr })
-      .groupBy("j.date")
-      .orderBy("j.date", "ASC")
+      .select('j.date', 'date')
+      .addSelect('COUNT(*)', 'count')
+      .where('j.date >= :start', { start: startStr })
+      .groupBy('j.date')
+      .orderBy('j.date', 'ASC')
       .getRawMany<{ date: string; count: string }>();
 
     return result.map((r) => ({

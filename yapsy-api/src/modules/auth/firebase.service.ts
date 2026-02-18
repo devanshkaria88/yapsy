@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleInit, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
 
@@ -20,7 +25,9 @@ export class FirebaseService implements OnModuleInit {
     if (admin.apps.length === 0) {
       const projectId = this.configService.get<string>('firebase.projectId');
       const privateKey = this.configService.get<string>('firebase.privateKey');
-      const clientEmail = this.configService.get<string>('firebase.clientEmail');
+      const clientEmail = this.configService.get<string>(
+        'firebase.clientEmail',
+      );
 
       if (projectId && clientEmail && privateKey) {
         admin.initializeApp({
@@ -50,18 +57,19 @@ export class FirebaseService implements OnModuleInit {
       const decoded = await admin.auth().verifyIdToken(idToken);
 
       // Determine the sign-in provider
-      const provider =
-        decoded.firebase?.sign_in_provider ?? 'unknown';
+      const provider = decoded.firebase?.sign_in_provider ?? 'unknown';
 
       return {
         uid: decoded.uid,
         email: decoded.email ?? '',
         name: decoded.name as string | undefined,
-        picture: decoded.picture as string | undefined,
+        picture: decoded.picture,
         provider,
       };
     } catch (error) {
-      this.logger.warn(`Firebase token verification failed: ${(error as Error).message}`);
+      this.logger.warn(
+        `Firebase token verification failed: ${(error as Error).message}`,
+      );
       throw new UnauthorizedException('Invalid or expired Firebase token');
     }
   }

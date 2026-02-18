@@ -5,10 +5,15 @@ import { Transform } from 'class-transformer';
 export class CreateWaitlistEntryDto {
   @ApiProperty({ description: 'Email address', example: 'user@example.com' })
   @IsEmail()
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
+  @Transform(({ value }: { value: unknown }): string =>
+    typeof value === 'string' ? value.trim().toLowerCase() : String(value),
+  )
   email: string;
 
-  @ApiPropertyOptional({ description: 'Country code (ISO 3166-1 alpha-2)', example: 'GB' })
+  @ApiPropertyOptional({
+    description: 'Country code (ISO 3166-1 alpha-2)',
+    example: 'GB',
+  })
   @IsOptional()
   @IsString()
   country?: string;

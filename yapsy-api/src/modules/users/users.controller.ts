@@ -25,7 +25,11 @@ export class UsersController {
 
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
-  @ApiResponse({ status: 200, description: 'User profile returned successfully', type: UserProfileResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'User profile returned successfully',
+    type: UserProfileResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   getProfile(@CurrentUser('id') userId: string) {
     return this.usersService.getProfile(userId);
@@ -33,18 +37,23 @@ export class UsersController {
 
   @Patch('me')
   @ApiOperation({ summary: 'Update current user profile' })
-  @ApiResponse({ status: 200, description: 'Profile updated successfully', type: UserProfileResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile updated successfully',
+    type: UserProfileResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  updateProfile(
-    @CurrentUser('id') userId: string,
-    @Body() dto: UpdateUserDto,
-  ) {
+  updateProfile(@CurrentUser('id') userId: string, @Body() dto: UpdateUserDto) {
     return this.usersService.updateProfile(userId, dto);
   }
 
   @Patch('me/fcm-token')
   @ApiOperation({ summary: 'Update FCM token for push notifications' })
-  @ApiResponse({ status: 200, description: 'FCM token updated successfully', type: MessageResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'FCM token updated successfully',
+    type: MessageResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async updateFcmToken(
     @CurrentUser('id') userId: string,
@@ -56,7 +65,11 @@ export class UsersController {
 
   @Delete('me')
   @ApiOperation({ summary: 'Delete account (soft delete)' })
-  @ApiResponse({ status: 200, description: 'Account deleted successfully', type: MessageResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Account deleted successfully',
+    type: MessageResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async deleteAccount(@CurrentUser('id') userId: string) {
     await this.usersService.deleteAccount(userId);

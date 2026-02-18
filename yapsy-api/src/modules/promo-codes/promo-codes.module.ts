@@ -7,9 +7,7 @@ import { PromoCodesController } from './promo-codes.controller';
 import { AdminPromoCodesController } from './admin-promo-codes.controller';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([PromoCode, UserPromoRedemption]),
-  ],
+  imports: [TypeOrmModule.forFeature([PromoCode, UserPromoRedemption])],
   controllers: [PromoCodesController, AdminPromoCodesController],
   providers: [PromoCodesService],
   exports: [PromoCodesService],

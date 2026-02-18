@@ -58,4 +58,4 @@ async function bootstrap() {
   logger.log(`Admin Swagger:  http://localhost:${port}/docs/admin`);
 }
 
-bootstrap();
+void bootstrap();

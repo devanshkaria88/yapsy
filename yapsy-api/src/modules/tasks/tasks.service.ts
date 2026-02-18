@@ -79,15 +79,15 @@ export class TasksService {
 
   async findOverdue(userId: string): Promise<Task[]> {
     const today = new Date().toISOString().split('T')[0];
-    return this.taskRepository.find({
-      where: {
-        user_id: userId,
-        status: TaskStatus.PENDING,
-      },
-      order: { scheduled_date: 'ASC', priority: 'DESC' },
-    }).then((tasks) =>
-      tasks.filter((t) => t.scheduled_date < today),
-    );
+    return this.taskRepository
+      .find({
+        where: {
+          user_id: userId,
+          status: TaskStatus.PENDING,
+        },
+        order: { scheduled_date: 'ASC', priority: 'DESC' },
+      })
+      .then((tasks) => tasks.filter((t) => t.scheduled_date < today));
   }
 
   async findUpcoming(userId: string): Promise<Task[]> {
@@ -174,9 +174,7 @@ export class TasksService {
         throw new NotFoundException('Task not found');
       }
       if (originalTask.status !== TaskStatus.PENDING) {
-        throw new BadRequestException(
-          'Only pending tasks can be rolled over',
-        );
+        throw new BadRequestException('Only pending tasks can be rolled over');
       }
 
       originalTask.status = TaskStatus.ROLLED_OVER;

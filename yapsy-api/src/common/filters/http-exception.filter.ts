@@ -40,7 +40,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
         // Handle validation errors (BadRequestException with array message)
         if (
-          statusCode === HttpStatus.BAD_REQUEST &&
+          statusCode === (HttpStatus.BAD_REQUEST as number) &&
           Array.isArray(res.message)
         ) {
           message = res.message.join(', ');

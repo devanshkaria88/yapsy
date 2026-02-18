@@ -51,7 +51,10 @@ export class ConversationsService {
       weeklyCount >= this.FREE_WEEKLY_LIMIT
     ) {
       throw new HttpException(
-        { code: 'WEEKLY_LIMIT_REACHED', message: 'Weekly check-in limit reached' },
+        {
+          code: 'WEEKLY_LIMIT_REACHED',
+          message: 'Weekly check-in limit reached',
+        },
         HttpStatus.PAYMENT_REQUIRED,
       );
     }
@@ -108,9 +111,13 @@ export class ConversationsService {
     userId: string,
     journalId: string,
   ): Promise<{ processing_status: string }> {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(journalId)) {
-      throw new HttpException('Invalid journal ID format', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Invalid journal ID format',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const journal = await this.journalsRepo.findOne({

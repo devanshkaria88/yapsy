@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { TaskPriority } from '../../../common/enums';
 
 export class CreateTaskDto {
@@ -13,7 +19,11 @@ export class CreateTaskDto {
   @IsOptional()
   description?: string;
 
-  @ApiProperty({ description: 'Scheduled date', example: '2026-02-20', type: String })
+  @ApiProperty({
+    description: 'Scheduled date',
+    example: '2026-02-20',
+    type: String,
+  })
   @IsDateString()
   scheduled_date: string;
 

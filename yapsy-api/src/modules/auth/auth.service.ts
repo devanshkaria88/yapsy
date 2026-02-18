@@ -9,16 +9,15 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
-import { Gender, SubscriptionStatus } from '../../common/enums';
+import { SubscriptionStatus } from '../../common/enums';
 import { AdminUser } from '../users/entities/admin-user.entity';
 import { User } from '../users/entities/user.entity';
-import { FirebaseService, FirebaseUser } from './firebase.service';
+import { FirebaseService } from './firebase.service';
 import {
   AdminAuthResponseDto,
   AuthResponseDto,
   AuthUserDto,
   OnboardingDto,
-  RefreshTokenDto,
 } from './dto';
 
 const BCRYPT_ROUNDS = 12;
@@ -74,11 +73,13 @@ export class AuthService {
           is_onboarded: false,
         });
         await this.usersRepository.save(user);
-        this.logger.log(`New user created: ${user.email} via ${fbUser.provider}`);
+        this.logger.log(
+          `New user created: ${user.email} via ${fbUser.provider}`,
+        );
       }
     }
 
-    const tokens = await this.generateTokens(user.id, user.email);
+    const tokens = this.generateTokens(user.id, user.email);
     await this.updateRefreshToken(user.id, tokens.refresh_token);
 
     return {
@@ -94,7 +95,10 @@ export class AuthService {
    * Complete user onboarding with basic profile info.
    * Sets is_onboarded = true.
    */
-  async completeOnboarding(userId: string, dto: OnboardingDto): Promise<AuthUserDto> {
+  async completeOnboarding(
+    userId: string,
+    dto: OnboardingDto,
+  ): Promise<AuthUserDto> {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new UnauthorizedException('User not found');
@@ -116,7 +120,10 @@ export class AuthService {
 
   // ─── Mobile: Refresh & Logout ───────────────────────────────────────
 
-  async refreshTokens(userId: string, refreshToken: string): Promise<AuthResponseDto> {
+  async refreshTokens(
+    userId: string,
+    refreshToken: string,
+  ): Promise<AuthResponseDto> {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user || !user.refresh_token_hash) {
       throw new UnauthorizedException('Access denied');
@@ -127,7 +134,7 @@ export class AuthService {
       throw new UnauthorizedException('Access denied');
     }
 
-    const tokens = await this.generateTokens(user.id, user.email);
+    const tokens = this.generateTokens(user.id, user.email);
     await this.updateRefreshToken(user.id, tokens.refresh_token);
 
     return {
@@ -175,7 +182,7 @@ export class AuthService {
       this.logger.log(`Admin ${admin.email} linked to Firebase UID`);
     }
 
-    const tokens = await this.generateAdminTokens(admin.id, admin.email);
+    const tokens = this.generateAdminTokens(admin.id, admin.email);
     await this.updateAdminRefreshToken(admin.id, tokens.refresh_token);
 
     return {
@@ -208,7 +215,7 @@ export class AuthService {
       throw new UnauthorizedException('Access denied');
     }
 
-    const tokens = await this.generateAdminTokens(admin.id, admin.email);
+    const tokens = this.generateAdminTokens(admin.id, admin.email);
     await this.updateAdminRefreshToken(admin.id, tokens.refresh_token);
 
     return {
@@ -231,34 +238,42 @@ export class AuthService {
 
   // ─── Private helpers ────────────────────────────────────────────────
 
-  private async generateTokens(
+  private generateTokens(
     userId: string,
     email: string,
-  ): Promise<{ access_token: string; refresh_token: string }> {
+  ): { access_token: string; refresh_token: string } {
     const payload = { sub: userId, email };
     const access_token = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('jwt.secret'),
-      expiresIn: this.parseExpiry(this.configService.get<string>('jwt.expiresIn') ?? '15m'),
+      expiresIn: this.parseExpiry(
+        this.configService.get<string>('jwt.expiresIn') ?? '15m',
+      ),
     });
     const refresh_token = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('jwt.refreshSecret'),
-      expiresIn: this.parseExpiry(this.configService.get<string>('jwt.refreshExpiresIn') ?? '30d'),
+      expiresIn: this.parseExpiry(
+        this.configService.get<string>('jwt.refreshExpiresIn') ?? '30d',
+      ),
     });
     return { access_token, refresh_token };
   }
 
-  private async generateAdminTokens(
+  private generateAdminTokens(
     adminId: string,
     email: string,
-  ): Promise<{ access_token: string; refresh_token: string }> {
+  ): { access_token: string; refresh_token: string } {
     const payload = { sub: adminId, email };
     const access_token = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('adminJwt.secret'),
-      expiresIn: this.parseExpiry(this.configService.get<string>('adminJwt.expiresIn') ?? '1h'),
+      expiresIn: this.parseExpiry(
+        this.configService.get<string>('adminJwt.expiresIn') ?? '1h',
+      ),
     });
     const refresh_token = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('adminJwt.refreshSecret'),
-      expiresIn: this.parseExpiry(this.configService.get<string>('adminJwt.refreshExpiresIn') ?? '7d'),
+      expiresIn: this.parseExpiry(
+        this.configService.get<string>('adminJwt.refreshExpiresIn') ?? '7d',
+      ),
     });
     return { access_token, refresh_token };
   }
@@ -271,22 +286,35 @@ export class AuthService {
     if (!match) return 900; // default 15 minutes
     const num = parseInt(match[1], 10);
     switch (match[2]) {
-      case 's': return num;
-      case 'm': return num * 60;
-      case 'h': return num * 3600;
-      case 'd': return num * 86400;
-      default: return 900;
+      case 's':
+        return num;
+      case 'm':
+        return num * 60;
+      case 'h':
+        return num * 3600;
+      case 'd':
+        return num * 86400;
+      default:
+        return 900;
     }
   }
 
-  private async updateRefreshToken(userId: string, refreshToken: string): Promise<void> {
+  private async updateRefreshToken(
+    userId: string,
+    refreshToken: string,
+  ): Promise<void> {
     const hash = await bcrypt.hash(refreshToken, BCRYPT_ROUNDS);
     await this.usersRepository.update(userId, { refresh_token_hash: hash });
   }
 
-  private async updateAdminRefreshToken(adminId: string, refreshToken: string): Promise<void> {
+  private async updateAdminRefreshToken(
+    adminId: string,
+    refreshToken: string,
+  ): Promise<void> {
     const hash = await bcrypt.hash(refreshToken, BCRYPT_ROUNDS);
-    await this.adminUsersRepository.update(adminId, { refresh_token_hash: hash });
+    await this.adminUsersRepository.update(adminId, {
+      refresh_token_hash: hash,
+    });
   }
 
   private toAuthUserDto(user: User): AuthUserDto {

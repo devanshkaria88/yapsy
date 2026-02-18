@@ -9,10 +9,21 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse, ApiExtraModels, getSchemaPath } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiExtraModels,
+  getSchemaPath,
+} from '@nestjs/swagger';
 import { MobileApi, CurrentUser } from '../../common/decorators';
 import { JwtAuthGuard } from '../../common/guards';
-import { CreateNoteDto, NoteQueryDto, UpdateNoteDto, NoteResponseDto } from './dto';
+import {
+  CreateNoteDto,
+  NoteQueryDto,
+  UpdateNoteDto,
+  NoteResponseDto,
+} from './dto';
 import { MessageResponseDto } from '../../common/dto/message-response.dto';
 import { NotesService } from './notes.service';
 
@@ -31,7 +42,10 @@ export class NotesController {
     schema: {
       type: 'object',
       properties: {
-        items: { type: 'array', items: { $ref: getSchemaPath(NoteResponseDto) } },
+        items: {
+          type: 'array',
+          items: { $ref: getSchemaPath(NoteResponseDto) },
+        },
         meta: {
           type: 'object',
           properties: {
@@ -45,28 +59,30 @@ export class NotesController {
     },
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  findAll(
-    @CurrentUser('id') userId: string,
-    @Query() query: NoteQueryDto,
-  ) {
+  findAll(@CurrentUser('id') userId: string, @Query() query: NoteQueryDto) {
     return this.notesService.findAll(userId, query);
   }
 
   @Post()
   @ApiOperation({ summary: 'Create a new note' })
-  @ApiResponse({ status: 201, description: 'Note created successfully', type: NoteResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Note created successfully',
+    type: NoteResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  create(
-    @CurrentUser('id') userId: string,
-    @Body() dto: CreateNoteDto,
-  ) {
+  create(@CurrentUser('id') userId: string, @Body() dto: CreateNoteDto) {
     return this.notesService.create(userId, dto);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a note' })
   @ApiParam({ name: 'id', description: 'Note ID' })
-  @ApiResponse({ status: 200, description: 'Note updated successfully', type: NoteResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Note updated successfully',
+    type: NoteResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Note not found' })
   update(
@@ -80,13 +96,14 @@ export class NotesController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a note' })
   @ApiParam({ name: 'id', description: 'Note ID' })
-  @ApiResponse({ status: 200, description: 'Note deleted successfully', type: MessageResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Note deleted successfully',
+    type: MessageResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Note not found' })
-  async remove(
-    @CurrentUser('id') userId: string,
-    @Param('id') noteId: string,
-  ) {
+  async remove(@CurrentUser('id') userId: string, @Param('id') noteId: string) {
     await this.notesService.remove(userId, noteId);
     return { message: 'Note deleted' };
   }

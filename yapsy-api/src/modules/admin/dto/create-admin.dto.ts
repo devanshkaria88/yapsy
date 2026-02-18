@@ -1,9 +1,18 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 import { AdminRole } from '../../../common/enums';
 
 export class CreateAdminDto {
-  @ApiProperty({ description: 'Admin email (must match a Firebase account)', example: 'admin@yapsy.app' })
+  @ApiProperty({
+    description: 'Admin email (must match a Firebase account)',
+    example: 'admin@yapsy.app',
+  })
   @IsEmail()
   email: string;
 

@@ -13,24 +13,28 @@ export interface ApiResponse<T> {
   meta?: Record<string, unknown>;
 }
 
+interface PaginatedData {
+  meta: Record<string, unknown>;
+  items: unknown;
+}
+
 @Injectable()
-export class TransformInterceptor<T>
-  implements NestInterceptor<T, ApiResponse<T>>
-{
+export class TransformInterceptor<T> implements NestInterceptor<
+  T,
+  ApiResponse<T>
+> {
   intercept(
     context: ExecutionContext,
-    next: CallHandler,
+    next: CallHandler<T>,
   ): Observable<ApiResponse<T>> {
     return next.handle().pipe(
-      map((data) => {
-        // If response already has success property, pass through
+      map((data: T): ApiResponse<T> => {
         if (data && typeof data === 'object' && 'success' in data) {
-          return data;
+          return data as unknown as ApiResponse<T>;
         }
 
-        // Extract meta if present
         let meta: Record<string, unknown> | undefined;
-        let responseData = data;
+        let responseData: T = data;
 
         if (
           data &&
@@ -38,8 +42,9 @@ export class TransformInterceptor<T>
           'meta' in data &&
           'items' in data
         ) {
-          meta = data.meta;
-          responseData = data.items;
+          const paginated = data as unknown as PaginatedData;
+          meta = paginated.meta;
+          responseData = paginated.items as T;
         }
 
         return {

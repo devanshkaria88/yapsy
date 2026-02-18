@@ -6,6 +6,9 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { REQUIRES_PRO_KEY } from '../decorators/requires-pro.decorator';
+import { SubscriptionStatus } from '../enums';
+import { AuthenticatedRequest } from '../interfaces/authenticated-request.interface';
+import { User } from '../../modules/users/entities/user.entity';
 
 export const SUBSCRIPTION_REQUIRED = 'SUBSCRIPTION_REQUIRED';
 
@@ -23,10 +26,10 @@ export class SubscriptionGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
-    const user = request.user;
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    const user = request.user as User | undefined;
 
-    if (!user || user.subscription_status !== 'pro') {
+    if (!user || user.subscription_status !== SubscriptionStatus.PRO) {
       throw new ForbiddenException({
         code: SUBSCRIPTION_REQUIRED,
         message: 'Pro subscription required',

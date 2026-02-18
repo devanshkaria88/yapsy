@@ -54,10 +54,7 @@ export class InsightsService {
     private readonly journalsService: JournalsService,
   ) {}
 
-  async getMoodData(
-    userId: string,
-    days: number,
-  ): Promise<MoodDataPoint[]> {
+  async getMoodData(userId: string, days: number): Promise<MoodDataPoint[]> {
     const fromDate = new Date();
     fromDate.setDate(fromDate.getDate() - days);
     const from = fromDate.toISOString().split('T')[0];
@@ -126,9 +123,7 @@ export class InsightsService {
     for (const dateStr of dates) {
       const prev = prevDate ? new Date(prevDate) : null;
       const diffDays = prev
-        ? Math.round(
-            (new Date(dateStr).getTime() - prev.getTime()) / 86400000,
-          )
+        ? Math.round((new Date(dateStr).getTime() - prev.getTime()) / 86400000)
         : 1;
 
       if (diffDays === 1) {
@@ -171,19 +166,18 @@ export class InsightsService {
         this.addDays(weekStart, 6),
       );
 
-      const insightText =
-        await this.llmProcessorService.generateWeeklyInsight(
-          userId,
-          journals,
-          taskCompletionRate,
-        );
+      const insightText = await this.llmProcessorService.generateWeeklyInsight(
+        userId,
+        journals,
+        taskCompletionRate,
+      );
 
       const moodsWithScores = journals.filter(
         (j) => j.mood_score != null && !isNaN(j.mood_score),
       );
       const avgMood =
         moodsWithScores.length > 0
-          ? moodsWithScores.reduce((sum, j) => sum + j.mood_score!, 0) /
+          ? moodsWithScores.reduce((sum, j) => sum + j.mood_score, 0) /
             moodsWithScores.length
           : null;
 
@@ -210,7 +204,7 @@ export class InsightsService {
       );
       const lastWeekAvg =
         lastWeekMoods.length > 0
-          ? lastWeekMoods.reduce((sum, j) => sum + j.mood_score!, 0) /
+          ? lastWeekMoods.reduce((sum, j) => sum + j.mood_score, 0) /
             lastWeekMoods.length
           : null;
 

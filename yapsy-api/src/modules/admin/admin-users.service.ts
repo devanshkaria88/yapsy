@@ -34,7 +34,9 @@ export class AdminUsersService {
     });
 
     if (existing) {
-      throw new ConflictException(`Admin with email ${dto.email} already exists`);
+      throw new ConflictException(
+        `Admin with email ${dto.email} already exists`,
+      );
     }
 
     const admin = this.adminRepo.create({

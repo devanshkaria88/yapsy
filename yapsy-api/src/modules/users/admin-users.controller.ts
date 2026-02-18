@@ -30,7 +30,10 @@ export class AdminUsersController {
   @Get(':id')
   @ApiOperation({ summary: 'Get user details by ID' })
   @ApiParam({ name: 'id', description: 'User UUID' })
-  @ApiResponse({ status: 200, description: 'User details returned successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'User details returned successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not found' })
   findOne(@Param('id') id: string) {
@@ -39,9 +42,14 @@ export class AdminUsersController {
 
   @Patch(':id/subscription')
   @UseGuards(SuperAdminGuard)
-  @ApiOperation({ summary: 'Update user subscription status (Super Admin only)' })
+  @ApiOperation({
+    summary: 'Update user subscription status (Super Admin only)',
+  })
   @ApiParam({ name: 'id', description: 'User UUID' })
-  @ApiResponse({ status: 200, description: 'Subscription updated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Subscription updated successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - Super Admin required' })
   @ApiResponse({ status: 404, description: 'User not found' })

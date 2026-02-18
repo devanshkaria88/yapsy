@@ -46,8 +46,10 @@ export class WaitlistService {
     );
 
     // Optionally sync to Resend audience (fire-and-forget)
-    this.syncToResend(saved).catch((err) =>
-      this.logger.warn(`[Waitlist] Resend sync failed for ${dto.email}: ${err.message}`),
+    this.syncToResend(saved).catch((err: unknown) =>
+      this.logger.warn(
+        `[Waitlist] Resend sync failed for ${dto.email}: ${err instanceof Error ? err.message : String(err)}`,
+      ),
     );
 
     return saved;
@@ -75,8 +77,10 @@ export class WaitlistService {
 
       await this.waitlistRepo.update(entry.id, { synced_to_resend: true });
       this.logger.log(`[Waitlist] Synced to Resend: ${entry.email}`);
-    } catch (err) {
-      this.logger.warn(`[Waitlist] Resend API error: ${err}`);
+    } catch (err: unknown) {
+      this.logger.warn(
+        `[Waitlist] Resend API error: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
 

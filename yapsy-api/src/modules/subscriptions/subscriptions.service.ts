@@ -56,10 +56,9 @@ export class SubscriptionsService {
     let plan: SubscriptionPlan | null = null;
     if (user.razorpay_subscription_id) {
       try {
-        const razorpaySub =
-          await this.razorpayService.getSubscription(
-            user.razorpay_subscription_id,
-          );
+        const razorpaySub = await this.razorpayService.getSubscription(
+          user.razorpay_subscription_id,
+        );
         if (razorpaySub.plan_id) {
           plan = await this.planRepo.findOne({
             where: { razorpay_plan_id: razorpaySub.plan_id },
@@ -112,14 +111,12 @@ export class SubscriptionsService {
       customerId = customer.id;
     }
 
-    const totalCount =
-      plan.interval === PlanInterval.MONTHLY ? 12 : 1;
-    const subscription =
-      await this.razorpayService.createSubscription(
-        plan.razorpay_plan_id,
-        customerId,
-        totalCount,
-      );
+    const totalCount = plan.interval === PlanInterval.MONTHLY ? 12 : 1;
+    const subscription = await this.razorpayService.createSubscription(
+      plan.razorpay_plan_id,
+      customerId,
+      totalCount,
+    );
 
     await this.userRepo.update(userId, {
       razorpay_customer_id: customerId,
@@ -198,9 +195,7 @@ export class SubscriptionsService {
 
     try {
       const eventType = (payload.event as string) || 'unknown';
-      const razorpayEventId = (payload as { id?: string }).id as
-        | string
-        | undefined;
+      const razorpayEventId = (payload as { id?: string }).id;
 
       if (razorpayEventId) {
         const duplicate = await queryRunner.manager.findOne(WebhookEvent, {
@@ -381,8 +376,12 @@ export class SubscriptionsService {
 
   async getStats() {
     const [totalPro, totalFree, totalCancelled] = await Promise.all([
-      this.userRepo.count({ where: { subscription_status: SubscriptionStatus.PRO } }),
-      this.userRepo.count({ where: { subscription_status: SubscriptionStatus.FREE } }),
+      this.userRepo.count({
+        where: { subscription_status: SubscriptionStatus.PRO },
+      }),
+      this.userRepo.count({
+        where: { subscription_status: SubscriptionStatus.FREE },
+      }),
       this.userRepo.count({
         where: { subscription_status: SubscriptionStatus.CANCELLED },
       }),

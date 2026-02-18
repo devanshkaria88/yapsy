@@ -53,7 +53,10 @@ export class MoodInsightResponseDto {
   @ApiPropertyOptional({ nullable: true, example: 85 })
   productivity_score: number | null;
 
-  @ApiPropertyOptional({ nullable: true, example: 'This week you showed improvement in...' })
+  @ApiPropertyOptional({
+    nullable: true,
+    example: 'This week you showed improvement in...',
+  })
   insight_text: string | null;
 
   @ApiProperty({ format: 'date-time' })

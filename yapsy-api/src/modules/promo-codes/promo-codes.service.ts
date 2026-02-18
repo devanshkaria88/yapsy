@@ -8,7 +8,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { PromoType } from '../../common/enums';
-import { PaginatedResult, PaginationDto } from '../../common/dto/pagination.dto';
+import {
+  PaginatedResult,
+  PaginationDto,
+} from '../../common/dto/pagination.dto';
 import { PromoCode } from './entities/promo-code.entity';
 import { UserPromoRedemption } from './entities/user-promo-redemption.entity';
 import { CreatePromoDto, UpdatePromoDto } from './dto';
@@ -49,7 +52,10 @@ export class PromoCodesService {
     }
   }
 
-  async validate(code: string, originalPrice = 0): Promise<ValidatePromoResult> {
+  async validate(
+    code: string,
+    originalPrice = 0,
+  ): Promise<ValidatePromoResult> {
     const normalizedCode = code.toUpperCase();
     const promo = await this.promoRepo.findOne({
       where: { code: normalizedCode },
@@ -104,7 +110,11 @@ export class PromoCodesService {
     };
   }
 
-  async redeem(userId: string, code: string, originalPrice = 0): Promise<RedeemPromoResult> {
+  async redeem(
+    userId: string,
+    code: string,
+    originalPrice = 0,
+  ): Promise<RedeemPromoResult> {
     const normalizedCode = code.toUpperCase();
     const validateResult = await this.validate(normalizedCode, originalPrice);
     const { promo } = validateResult;
@@ -132,7 +142,9 @@ export class PromoCodesService {
       let effectiveUntil: Date | null = null;
       if (promo.duration_months) {
         effectiveUntil = new Date(redeemedAt);
-        effectiveUntil.setMonth(effectiveUntil.getMonth() + promo.duration_months);
+        effectiveUntil.setMonth(
+          effectiveUntil.getMonth() + promo.duration_months,
+        );
       }
 
       const redemption = queryRunner.manager.create(UserPromoRedemption, {
@@ -143,7 +155,12 @@ export class PromoCodesService {
       });
       await queryRunner.manager.save(redemption);
 
-      await queryRunner.manager.increment(PromoCode, { id: promo.id }, 'current_uses', 1);
+      await queryRunner.manager.increment(
+        PromoCode,
+        { id: promo.id },
+        'current_uses',
+        1,
+      );
 
       await queryRunner.commitTransaction();
 
@@ -180,7 +197,8 @@ export class PromoCodesService {
   }
 
   async create(dto: CreatePromoDto): Promise<PromoCode> {
-    const code = typeof dto.code === 'string' ? dto.code.toUpperCase() : dto.code;
+    const code =
+      typeof dto.code === 'string' ? dto.code.toUpperCase() : dto.code;
     const existing = await this.promoRepo.findOne({ where: { code } });
     if (existing) {
       throw new BadRequestException({
@@ -206,17 +224,21 @@ export class PromoCodesService {
 
     const updateData: Record<string, unknown> = {};
     if (dto.code !== undefined) {
-      updateData.code = typeof dto.code === 'string' ? dto.code.toUpperCase() : dto.code;
+      updateData.code =
+        typeof dto.code === 'string' ? dto.code.toUpperCase() : dto.code;
     }
     if (dto.type !== undefined) updateData.type = dto.type;
     if (dto.value !== undefined) updateData.value = dto.value;
-    if (dto.duration_months !== undefined) updateData.duration_months = dto.duration_months;
+    if (dto.duration_months !== undefined)
+      updateData.duration_months = dto.duration_months;
     if (dto.max_uses !== undefined) updateData.max_uses = dto.max_uses;
     if (dto.valid_from !== undefined) {
       updateData.valid_from = new Date(dto.valid_from);
     }
     if (dto.valid_until !== undefined) {
-      updateData.valid_until = dto.valid_until ? new Date(dto.valid_until) : null;
+      updateData.valid_until = dto.valid_until
+        ? new Date(dto.valid_until)
+        : null;
     }
     if (dto.is_active !== undefined) updateData.is_active = dto.is_active;
 

@@ -18,12 +18,7 @@ import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
     PassportModule.register({ defaultStrategy: 'jwt' }),
   ],
   controllers: [AuthController, AdminAuthController],
-  providers: [
-    AuthService,
-    FirebaseService,
-    JwtStrategy,
-    AdminJwtStrategy,
-  ],
+  providers: [AuthService, FirebaseService, JwtStrategy, AdminJwtStrategy],
   exports: [AuthService, FirebaseService],
 })
 export class AuthModule {}

@@ -61,7 +61,7 @@ export class RazorpayService {
       throw new Error(`Razorpay API error: ${response.status} - ${error}`);
     }
 
-    return response.json();
+    return (await response.json()) as RazorpaySubscriptionResponse;
   }
 
   verifyPaymentSignature(
@@ -125,7 +125,7 @@ export class RazorpayService {
       throw new Error(`Razorpay API error: ${response.status} - ${error}`);
     }
 
-    return response.json();
+    return (await response.json()) as RazorpaySubscriptionResponse;
   }
 
   async createCustomer(
@@ -154,9 +154,11 @@ export class RazorpayService {
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`Razorpay customer create error: ${response.status} - ${error}`);
+      throw new Error(
+        `Razorpay customer create error: ${response.status} - ${error}`,
+      );
     }
 
-    return response.json();
+    return (await response.json()) as RazorpayCustomerResponse;
   }
 }

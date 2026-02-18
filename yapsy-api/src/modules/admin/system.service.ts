@@ -46,10 +46,10 @@ export class SystemService {
     };
   }
 
-  async getCosts(): Promise<{
+  getCosts(): {
     elevenlabs: { requests: number; cost: number };
     gemini: { requests: number; cost: number };
-  }> {
+  } {
     // Placeholder — wire up real cost tracking when available
     return {
       elevenlabs: { requests: 0, cost: 0 },
@@ -74,7 +74,9 @@ export class SystemService {
     });
   }
 
-  async retryWebhook(id: string): Promise<{ success: boolean; message: string }> {
+  async retryWebhook(
+    id: string,
+  ): Promise<{ success: boolean; message: string }> {
     const webhook = await this.webhookRepo.findOne({ where: { id } });
     if (!webhook) {
       throw new NotFoundException('Webhook event not found');

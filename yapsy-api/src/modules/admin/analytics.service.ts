@@ -24,20 +24,25 @@ export class AnalyticsService {
     const result = await this.journalRepo
       .createQueryBuilder('j')
       .select(
-        "SUM(CASE WHEN j.mood_score >= 1 AND j.mood_score <= 3 THEN 1 ELSE 0 END)",
-        "low",
+        'SUM(CASE WHEN j.mood_score >= 1 AND j.mood_score <= 3 THEN 1 ELSE 0 END)',
+        'low',
       )
       .addSelect(
-        "SUM(CASE WHEN j.mood_score >= 4 AND j.mood_score <= 6 THEN 1 ELSE 0 END)",
-        "medium",
+        'SUM(CASE WHEN j.mood_score >= 4 AND j.mood_score <= 6 THEN 1 ELSE 0 END)',
+        'medium',
       )
       .addSelect(
-        "SUM(CASE WHEN j.mood_score >= 7 AND j.mood_score <= 10 THEN 1 ELSE 0 END)",
-        "high",
+        'SUM(CASE WHEN j.mood_score >= 7 AND j.mood_score <= 10 THEN 1 ELSE 0 END)',
+        'high',
       )
-      .addSelect("COUNT(*)", "total")
-      .where("j.mood_score IS NOT NULL")
-      .getRawOne<{ low: string; medium: string; high: string; total: string }>();
+      .addSelect('COUNT(*)', 'total')
+      .where('j.mood_score IS NOT NULL')
+      .getRawOne<{
+        low: string;
+        medium: string;
+        high: string;
+        total: string;
+      }>();
 
     return {
       low: parseInt(result?.low ?? '0', 10),
@@ -156,8 +161,7 @@ export class AnalyticsService {
     ]);
 
     const first_check_in = parseInt(firstCheckIn?.count ?? '0', 10);
-    const conversion_rate =
-      registered > 0 ? (pro / registered) * 100 : 0;
+    const conversion_rate = registered > 0 ? (pro / registered) * 100 : 0;
 
     return {
       registered,
@@ -168,7 +172,9 @@ export class AnalyticsService {
   }
 
   async getThemes(): Promise<{ theme: string; count: number }[]> {
-    const result = await this.dataSource.query<{ theme: string; count: string }[]>(
+    const result = await this.dataSource.query<
+      { theme: string; count: string }[]
+    >(
       `
       SELECT theme, COUNT(*)::text as count
       FROM journals, unnest(themes) AS theme
