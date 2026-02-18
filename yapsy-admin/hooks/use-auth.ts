@@ -1,19 +1,29 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback, useSyncExternalStore } from "react";
 import { getStoredUser, initializeAuth, logout } from "@/lib/auth";
 import type { AdminUser } from "@/lib/types";
 
-export function useAuth() {
-  const [user, setUser] = useState<AdminUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+let authInitialized = false;
 
-  useEffect(() => {
+function getSnapshot(): AdminUser | null {
+  if (typeof window === "undefined") return null;
+  if (!authInitialized) {
+    authInitialized = true;
     initializeAuth();
-    const stored = getStoredUser();
-    setUser(stored);
-    setIsLoading(false);
-  }, []);
+  }
+  return getStoredUser();
+}
+
+function getServerSnapshot(): AdminUser | null {
+  return null;
+}
+
+const subscribe = () => () => {};
+
+export function useAuth() {
+  const user = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const [isLoading] = useState(false);
 
   const handleLogout = useCallback(async () => {
     await logout();

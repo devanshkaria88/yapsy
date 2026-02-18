@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useRef } from 'react';
 
 interface Particle {
   id: number;
@@ -33,11 +33,15 @@ export function ParticleField({
   className,
   color = 'rgba(255, 244, 234, 0.3)',
 }: ParticleFieldProps) {
-  const [particles, setParticles] = useState<Particle[]>([]);
+  const particlesRef = useRef<Particle[] | null>(null);
+  const prevCountRef = useRef(count);
 
-  useEffect(() => {
-    setParticles(generateParticles(count));
-  }, [count]);
+  if (particlesRef.current === null || prevCountRef.current !== count) {
+    particlesRef.current = generateParticles(count);
+    prevCountRef.current = count;
+  }
+
+  const particles = particlesRef.current;
 
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className || ''}`}>

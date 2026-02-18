@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useRef, useSyncExternalStore } from 'react';
 
 interface ConfettiProps {
   trigger: boolean;
@@ -29,18 +29,38 @@ function generatePieces(): Piece[] {
   }));
 }
 
-export function Confetti({ trigger, className }: ConfettiProps) {
-  const [show, setShow] = useState(false);
-  const [pieces, setPieces] = useState<Piece[]>([]);
+function useConfettiState(trigger: boolean) {
+  const stateRef = useRef<{ show: boolean; pieces: Piece[] }>({ show: false, pieces: [] });
+  const listenersRef = useRef(new Set<() => void>());
+  const prevTriggerRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    if (trigger) {
-      setPieces(generatePieces());
-      setShow(true);
-      const timer = setTimeout(() => setShow(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [trigger]);
+  const subscribe = useCallback((listener: () => void) => {
+    listenersRef.current.add(listener);
+    return () => { listenersRef.current.delete(listener); };
+  }, []);
+
+  const notify = useCallback(() => {
+    listenersRef.current.forEach((l) => l());
+  }, []);
+
+  if (trigger && !prevTriggerRef.current) {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    stateRef.current = { show: true, pieces: generatePieces() };
+    timerRef.current = setTimeout(() => {
+      stateRef.current = { ...stateRef.current, show: false };
+      notify();
+    }, 3000);
+  }
+  prevTriggerRef.current = trigger;
+
+  const getSnapshot = useCallback(() => stateRef.current, []);
+
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+}
+
+export function Confetti({ trigger, className }: ConfettiProps) {
+  const { show, pieces } = useConfettiState(trigger);
 
   if (!show) return null;
 

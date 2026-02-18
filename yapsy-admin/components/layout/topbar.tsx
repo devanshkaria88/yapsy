@@ -2,7 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
-import { LogOut, Moon, Sun, Menu, Sparkles } from "lucide-react";
+import { LogOut, Moon, Sun, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
