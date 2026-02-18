@@ -2,12 +2,12 @@ name: "CI/CD: yapsy-admin"
 
 on:
   push:
-    branches: [main, develop]
+    branches: [prod, develop]
     paths:
       - "yapsy-admin/**"
       - ".github/workflows/yapsy-admin.yml"
   pull_request:
-    branches: [main, develop]
+    branches: [prod, develop]
     paths:
       - "yapsy-admin/**"
       - ".github/workflows/yapsy-admin.yml"
@@ -41,7 +41,7 @@ jobs:
     needs: test
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    environment: ${{ github.ref == 'refs/heads/prod' && 'production' || 'staging' }}
     permissions:
       contents: read
       packages: write
@@ -59,7 +59,7 @@ jobs:
       - name: Determine tag
         id: tag
         run: |
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          if [ "${{ github.ref }}" = "refs/heads/prod" ]; then
             echo "tag=production" >> "$GITHUB_OUTPUT"
           else
             echo "tag=staging" >> "$GITHUB_OUTPUT"
@@ -105,6 +105,6 @@ jobs:
             docker run -d \
               --name yapsy-admin-${{ steps.tag.outputs.tag }} \
               --restart unless-stopped \
-              -p ${{ github.ref == 'refs/heads/main' && '3002:3000' || '3003:3000' }} \
+              -p ${{ github.ref == 'refs/heads/prod' && '3002:3000' || '3003:3000' }} \
               ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
             docker image prune -f

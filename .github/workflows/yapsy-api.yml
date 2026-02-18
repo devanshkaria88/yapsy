@@ -2,12 +2,12 @@ name: "CI/CD: yapsy-api"
 
 on:
   push:
-    branches: [main, develop]
+    branches: [prod, develop]
     paths:
       - "yapsy-api/**"
       - ".github/workflows/yapsy-api.yml"
   pull_request:
-    branches: [main, develop]
+    branches: [prod, develop]
     paths:
       - "yapsy-api/**"
       - ".github/workflows/yapsy-api.yml"
@@ -57,7 +57,7 @@ jobs:
     needs: test
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    environment: ${{ github.ref == 'refs/heads/prod' && 'production' || 'staging' }}
     permissions:
       contents: read
       packages: write
@@ -75,7 +75,7 @@ jobs:
       - name: Determine tag
         id: tag
         run: |
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          if [ "${{ github.ref }}" = "refs/heads/prod" ]; then
             echo "tag=production" >> "$GITHUB_OUTPUT"
           else
             echo "tag=staging" >> "$GITHUB_OUTPUT"
@@ -114,7 +114,7 @@ jobs:
               --name yapsy-api-${{ steps.tag.outputs.tag }} \
               --restart unless-stopped \
               --network host \
-              -e NODE_ENV=${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }} \
+              -e NODE_ENV=${{ github.ref == 'refs/heads/prod' && 'production' || 'staging' }} \
               -e PORT=${{ secrets.API_PORT }} \
               -e API_PREFIX=${{ secrets.API_PREFIX }} \
               -e DB_HOST=${{ secrets.DB_HOST }} \

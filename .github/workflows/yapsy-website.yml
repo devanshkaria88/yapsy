@@ -2,12 +2,12 @@ name: "CI/CD: yapsy-website"
 
 on:
   push:
-    branches: [main, develop]
+    branches: [prod, develop]
     paths:
       - "yapsy-website/**"
       - ".github/workflows/yapsy-website.yml"
   pull_request:
-    branches: [main, develop]
+    branches: [prod, develop]
     paths:
       - "yapsy-website/**"
       - ".github/workflows/yapsy-website.yml"
@@ -39,7 +39,7 @@ jobs:
   build-and-push:
     name: Build & Push Docker Image
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/prod'
     runs-on: ubuntu-latest
     permissions:
       contents: read
