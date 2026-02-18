@@ -3,7 +3,7 @@ import * as Joi from 'joi';
 export const validationSchema = Joi.object({
   // App
   NODE_ENV: Joi.string()
-    .valid('development', 'production', 'test')
+    .valid('development', 'staging', 'production', 'test')
     .default('development'),
   PORT: Joi.number().default(3000),
   API_PREFIX: Joi.string().default('api/v1'),
@@ -35,10 +35,10 @@ export const validationSchema = Joi.object({
   GEMINI_API_KEY: Joi.string().default(''),
   GEMINI_MODEL: Joi.string().default('gemini-2.0-flash'),
 
-  // Razorpay
-  RAZORPAY_KEY_ID: Joi.string().default(''),
-  RAZORPAY_KEY_SECRET: Joi.string().default(''),
-  RAZORPAY_WEBHOOK_SECRET: Joi.string().default(''),
+  // Razorpay (optional — payment features disabled when empty)
+  RAZORPAY_KEY_ID: Joi.string().allow('').default(''),
+  RAZORPAY_KEY_SECRET: Joi.string().allow('').default(''),
+  RAZORPAY_WEBHOOK_SECRET: Joi.string().allow('').default(''),
 
   // Firebase
   FIREBASE_PROJECT_ID: Joi.string().default(''),

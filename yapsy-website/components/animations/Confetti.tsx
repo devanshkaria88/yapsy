@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface ConfettiProps {
   trigger: boolean;
@@ -16,23 +16,26 @@ interface Piece {
   size: number;
 }
 
+const COLORS = ['#FCB0F3', '#3D05DD', '#B153D7', '#6EEE87', '#FFF4EA', '#C798E8'];
+
+function generatePieces(): Piece[] {
+  return Array.from({ length: 50 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    delay: Math.random() * 0.5,
+    rotation: Math.random() * 360,
+    size: Math.random() * 8 + 4,
+  }));
+}
+
 export function Confetti({ trigger, className }: ConfettiProps) {
   const [show, setShow] = useState(false);
-
-  const pieces = useMemo<Piece[]>(() => {
-    const colors = ['#FCB0F3', '#3D05DD', '#B153D7', '#6EEE87', '#FFF4EA', '#C798E8'];
-    return Array.from({ length: 50 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      delay: Math.random() * 0.5,
-      rotation: Math.random() * 360,
-      size: Math.random() * 8 + 4,
-    }));
-  }, []);
+  const [pieces, setPieces] = useState<Piece[]>([]);
 
   useEffect(() => {
     if (trigger) {
+      setPieces(generatePieces());
       setShow(true);
       const timer = setTimeout(() => setShow(false), 3000);
       return () => clearTimeout(timer);
