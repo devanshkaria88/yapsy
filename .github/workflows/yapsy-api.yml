@@ -1,6 +1,7 @@
 name: "CI/CD: yapsy-api"
 
 on:
+  workflow_dispatch:
   push:
     branches: [prod, develop]
     paths:
