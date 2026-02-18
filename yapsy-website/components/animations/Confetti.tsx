@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 
 interface ConfettiProps {
   trigger: boolean;
@@ -83,10 +83,7 @@ function processConfettiTrigger(trigger: boolean) {
 export function Confetti({ trigger, className }: ConfettiProps) {
   processConfettiTrigger(trigger);
 
-  const subscribe = useCallback(subscribeFn, []);
-  const getSnapshot = useCallback(getSnapshotFn, []);
-  const getServerSnapshot = useCallback(getServerSnapshotFn, []);
-  const { show, pieces } = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const { show, pieces } = useSyncExternalStore(subscribeFn, getSnapshotFn, getServerSnapshotFn);
 
   if (!show) return null;
 
