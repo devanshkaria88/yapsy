@@ -54,7 +54,7 @@ export class SubscriptionsService {
     }
 
     let plan: SubscriptionPlan | null = null;
-    if (user.razorpay_subscription_id) {
+    if (user.razorpay_subscription_id && this.razorpayService.isConfigured()) {
       try {
         const razorpaySub = await this.razorpayService.getSubscription(
           user.razorpay_subscription_id,

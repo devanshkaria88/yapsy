@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 
@@ -24,6 +24,20 @@ export interface RazorpayCustomerResponse {
 export class RazorpayService {
   constructor(private readonly configService: ConfigService) {}
 
+  isConfigured(): boolean {
+    const keyId = this.configService.get<string>('razorpay.keyId');
+    const keySecret = this.configService.get<string>('razorpay.keySecret');
+    return Boolean(keyId && keySecret);
+  }
+
+  private assertConfigured(): void {
+    if (!this.isConfigured()) {
+      throw new ServiceUnavailableException(
+        'Razorpay is not configured. Payment features are unavailable.',
+      );
+    }
+  }
+
   private getAuthHeader(): string {
     const keyId = this.configService.get<string>('razorpay.keyId');
     const keySecret = this.configService.get<string>('razorpay.keySecret');
@@ -36,6 +50,7 @@ export class RazorpayService {
     customerId?: string,
     totalCount: number = 12,
   ): Promise<RazorpaySubscriptionResponse> {
+    this.assertConfigured();
     const body: Record<string, unknown> = {
       plan_id: planId,
       total_count: totalCount,
@@ -90,6 +105,7 @@ export class RazorpayService {
   }
 
   async cancelSubscription(subscriptionId: string): Promise<void> {
+    this.assertConfigured();
     const response = await fetch(
       `${RAZORPAY_BASE_URL}/subscriptions/${subscriptionId}/cancel`,
       {
@@ -111,6 +127,7 @@ export class RazorpayService {
   async getSubscription(
     subscriptionId: string,
   ): Promise<RazorpaySubscriptionResponse> {
+    this.assertConfigured();
     const response = await fetch(
       `${RAZORPAY_BASE_URL}/subscriptions/${subscriptionId}`,
       {
@@ -133,6 +150,7 @@ export class RazorpayService {
     name: string,
     contact?: string,
   ): Promise<RazorpayCustomerResponse> {
+    this.assertConfigured();
     const body: Record<string, unknown> = {
       email,
       name,
