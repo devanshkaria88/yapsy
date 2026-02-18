@@ -14,6 +14,8 @@ credentials*.json
 .env
 .env.*
 !.env.example
+github-secrets*.env
+github-secrets*.csv
 
 # OS
 .DS_Store

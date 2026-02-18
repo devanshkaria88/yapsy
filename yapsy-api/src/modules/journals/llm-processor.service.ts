@@ -2,6 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import {
+  GoogleGenerativeAI,
+  FunctionDeclarationSchemaType,
+  type FunctionDeclaration,
+} from '@google/generative-ai';
 import { ConcernLevel, TaskPriority } from '../../common/enums';
 import { Journal } from './entities/journal.entity';
 import { User } from '../users/entities/user.entity';
@@ -11,6 +16,7 @@ import { NotesService } from '../notes/notes.service';
 @Injectable()
 export class LlmProcessorService {
   private readonly logger = new Logger(LlmProcessorService.name);
+  private genAI: GoogleGenerativeAI;
 
   constructor(
     private readonly configService: ConfigService,
@@ -18,7 +24,64 @@ export class LlmProcessorService {
     private readonly notesService: NotesService,
     @InjectRepository(Journal) private readonly journalsRepo: Repository<Journal>,
     @InjectRepository(User) private readonly usersRepo: Repository<User>,
-  ) {}
+  ) {
+    const apiKey = this.configService.get<string>('gemini.apiKey') || '';
+    this.genAI = new GoogleGenerativeAI(apiKey);
+  }
+
+  private getToolDeclarations(): FunctionDeclaration[] {
+    return [
+      {
+        name: 'create_task',
+        description: 'Create a new task for the user',
+        parameters: {
+          type: FunctionDeclarationSchemaType.OBJECT,
+          properties: {
+            title: { type: FunctionDeclarationSchemaType.STRING },
+            scheduled_date: { type: FunctionDeclarationSchemaType.STRING, description: 'Date in YYYY-MM-DD format' },
+            priority: { type: FunctionDeclarationSchemaType.STRING, description: 'One of: low, medium, high' },
+          },
+          required: ['title', 'scheduled_date'],
+        },
+      },
+      {
+        name: 'complete_task',
+        description: 'Mark a task as completed',
+        parameters: {
+          type: FunctionDeclarationSchemaType.OBJECT,
+          properties: {
+            task_id: { type: FunctionDeclarationSchemaType.STRING },
+          },
+          required: ['task_id'],
+        },
+      },
+      {
+        name: 'reschedule_task',
+        description: 'Reschedule a task to a new date',
+        parameters: {
+          type: FunctionDeclarationSchemaType.OBJECT,
+          properties: {
+            task_id: { type: FunctionDeclarationSchemaType.STRING },
+            new_date: { type: FunctionDeclarationSchemaType.STRING, description: 'Date in YYYY-MM-DD format' },
+            reason: { type: FunctionDeclarationSchemaType.STRING },
+          },
+          required: ['task_id', 'new_date'],
+        },
+      },
+      {
+        name: 'add_note',
+        description: 'Add a note for the user',
+        parameters: {
+          type: FunctionDeclarationSchemaType.OBJECT,
+          properties: {
+            content: { type: FunctionDeclarationSchemaType.STRING },
+            follow_up_date: { type: FunctionDeclarationSchemaType.STRING, description: 'Date in YYYY-MM-DD format' },
+          },
+          required: ['content'],
+        },
+      },
+    ];
+  }
 
   async processTranscript(
     journalId: string,
@@ -27,59 +90,7 @@ export class LlmProcessorService {
   ): Promise<void> {
     try {
       const todayTasks = await this.tasksService.findTodayTasksForContext(userId);
-
-      const apiKey = this.configService.get<string>('anthropic.apiKey');
-      const model = this.configService.get<string>('anthropic.model');
-
-      const tools = [
-        {
-          name: 'create_task',
-          description: 'Create a new task for the user',
-          input_schema: {
-            type: 'object',
-            properties: {
-              title: { type: 'string' },
-              scheduled_date: { type: 'string', format: 'date' },
-              priority: { type: 'string', enum: ['low', 'medium', 'high'] },
-            },
-            required: ['title', 'scheduled_date'],
-          },
-        },
-        {
-          name: 'complete_task',
-          description: 'Mark a task as completed',
-          input_schema: {
-            type: 'object',
-            properties: { task_id: { type: 'string' } },
-            required: ['task_id'],
-          },
-        },
-        {
-          name: 'reschedule_task',
-          description: 'Reschedule a task to a new date',
-          input_schema: {
-            type: 'object',
-            properties: {
-              task_id: { type: 'string' },
-              new_date: { type: 'string', format: 'date' },
-              reason: { type: 'string' },
-            },
-            required: ['task_id', 'new_date'],
-          },
-        },
-        {
-          name: 'add_note',
-          description: 'Add a note for the user',
-          input_schema: {
-            type: 'object',
-            properties: {
-              content: { type: 'string' },
-              follow_up_date: { type: 'string', format: 'date' },
-            },
-            required: ['content'],
-          },
-        },
-      ];
+      const modelName = this.configService.get<string>('gemini.model') || 'gemini-2.0-flash';
 
       const systemPrompt = `You are analyzing a voice journal transcript. The user talked about their day.
 
@@ -102,42 +113,17 @@ Return a JSON object with:
   "concern_level": "low" | "medium" | "high"
 }`;
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey || '',
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model,
-          max_tokens: 4096,
-          system: systemPrompt,
-          tools,
-          messages: [
-            {
-              role: 'user',
-              content: `Here is the conversation transcript:\n\n${JSON.stringify(transcript)}`,
-            },
-          ],
-        }),
+      const model = this.genAI.getGenerativeModel({
+        model: modelName,
+        systemInstruction: systemPrompt,
+        tools: [{ functionDeclarations: this.getToolDeclarations() }],
       });
 
-      if (!response.ok) {
-        throw new Error(`Claude API error: ${response.status}`);
-      }
+      const result = await model.generateContent(
+        `Here is the conversation transcript:\n\n${JSON.stringify(transcript)}`,
+      );
 
-      const result = (await response.json()) as {
-        content: Array<{
-          type: string;
-          text?: string;
-          name?: string;
-          input?: Record<string, unknown>;
-          id?: string;
-        }>;
-        stop_reason: string;
-      };
-
+      const response = result.response;
       const actionsTaken: {
         type: string;
         details: string;
@@ -154,24 +140,26 @@ Return a JSON object with:
         concern_level: 'low' as string,
       };
 
-      for (const block of result.content) {
-        if (block.type === 'text' && block.text) {
-          try {
-            const jsonMatch = block.text.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              insights = { ...insights, ...JSON.parse(jsonMatch[0]) };
+      for (const candidate of response.candidates || []) {
+        for (const part of candidate.content?.parts || []) {
+          if (part.text) {
+            try {
+              const jsonMatch = part.text.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                insights = { ...insights, ...JSON.parse(jsonMatch[0]) };
+              }
+            } catch {
+              /* ignore parse errors */
             }
-          } catch {
-            /* ignore parse errors */
+          } else if (part.functionCall) {
+            await this.executeToolCall(
+              part.functionCall.name,
+              (part.functionCall.args || {}) as Record<string, unknown>,
+              userId,
+              journalId,
+              actionsTaken,
+            );
           }
-        } else if (block.type === 'tool_use' && block.name && block.input) {
-          await this.executeToolCall(
-            block.name,
-            block.input,
-            userId,
-            journalId,
-            actionsTaken,
-          );
         }
       }
 
@@ -284,8 +272,7 @@ Return a JSON object with:
     journals: Journal[],
     taskCompletionRate: number,
   ): Promise<string> {
-    const apiKey = this.configService.get<string>('anthropic.apiKey');
-    const model = this.configService.get<string>('anthropic.model');
+    const modelName = this.configService.get<string>('gemini.model') || 'gemini-2.0-flash';
 
     const journalSummaries = journals.map((j) => ({
       date: j.date,
@@ -296,30 +283,12 @@ Return a JSON object with:
       struggles: j.struggles,
     }));
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey || '',
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: 1024,
-        messages: [
-          {
-            role: 'user',
-            content: `Generate a warm, supportive weekly insight for this user based on their journal entries and ${taskCompletionRate}% task completion rate this week:\n\n${JSON.stringify(journalSummaries)}\n\nWrite 2-3 paragraphs that highlight patterns, celebrate wins, and gently address struggles. Be empathetic and encouraging.`,
-          },
-        ],
-      }),
-    });
+    const model = this.genAI.getGenerativeModel({ model: modelName });
 
-    if (!response.ok)
-      throw new Error(`Claude API error: ${response.status}`);
-    const result = (await response.json()) as {
-      content: Array<{ type: string; text?: string }>;
-    };
-    return result.content[0]?.text || 'Unable to generate insight this week.';
+    const result = await model.generateContent(
+      `Generate a warm, supportive weekly insight for this user based on their journal entries and ${taskCompletionRate}% task completion rate this week:\n\n${JSON.stringify(journalSummaries)}\n\nWrite 2-3 paragraphs that highlight patterns, celebrate wins, and gently address struggles. Be empathetic and encouraging.`,
+    );
+
+    return result.response.text() || 'Unable to generate insight this week.';
   }
 }

@@ -2,12 +2,12 @@ name: "CI/CD: yapsy-admin"
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "yapsy-admin/**"
       - ".github/workflows/yapsy-admin.yml"
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "yapsy-admin/**"
       - ".github/workflows/yapsy-admin.yml"
@@ -36,11 +36,12 @@ jobs:
       - run: npm ci
       - run: npm run lint
 
-  build-and-push:
-    name: Build & Push Docker Image
+  build-and-deploy:
+    name: Build, Push & Deploy
     needs: test
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
       contents: read
       packages: write
@@ -55,6 +56,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Determine tag
+        id: tag
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "tag=production" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=staging" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -62,7 +72,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=sha,prefix=
-            type=raw,value=latest
+            type=raw,value=${{ steps.tag.outputs.tag }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -80,3 +90,21 @@ jobs:
             NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.ADMIN_NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
             NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.ADMIN_NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
             NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.ADMIN_NEXT_PUBLIC_FIREBASE_APP_ID }}
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script: |
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+            docker stop yapsy-admin-${{ steps.tag.outputs.tag }} || true
+            docker rm yapsy-admin-${{ steps.tag.outputs.tag }} || true
+            docker run -d \
+              --name yapsy-admin-${{ steps.tag.outputs.tag }} \
+              --restart unless-stopped \
+              -p ${{ github.ref == 'refs/heads/main' && '3002:3000' || '3003:3000' }} \
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+            docker image prune -f

@@ -29,9 +29,9 @@ export const validationSchema = Joi.object({
   ELEVENLABS_API_KEY: Joi.string().default(''),
   ELEVENLABS_AGENT_ID: Joi.string().default(''),
 
-  // Claude / Anthropic
-  ANTHROPIC_API_KEY: Joi.string().default(''),
-  ANTHROPIC_MODEL: Joi.string().default('claude-sonnet-4-20250514'),
+  // Gemini
+  GEMINI_API_KEY: Joi.string().default(''),
+  GEMINI_MODEL: Joi.string().default('gemini-2.0-flash'),
 
   // Razorpay
   RAZORPAY_KEY_ID: Joi.string().default(''),

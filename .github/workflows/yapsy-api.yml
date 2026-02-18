@@ -2,12 +2,12 @@ name: "CI/CD: yapsy-api"
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "yapsy-api/**"
       - ".github/workflows/yapsy-api.yml"
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "yapsy-api/**"
       - ".github/workflows/yapsy-api.yml"
@@ -52,11 +52,12 @@ jobs:
       - run: npm run lint
       - run: npm run test
 
-  build-and-push:
-    name: Build & Push Docker Image
+  build-and-deploy:
+    name: Build, Push & Deploy
     needs: test
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
       contents: read
       packages: write
@@ -71,6 +72,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Determine tag
+        id: tag
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "tag=production" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=staging" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -78,7 +88,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=sha,prefix=
-            type=raw,value=latest
+            type=raw,value=${{ steps.tag.outputs.tag }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -88,5 +98,50 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            NODE_ENV=production
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script: |
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+            docker stop yapsy-api-${{ steps.tag.outputs.tag }} || true
+            docker rm yapsy-api-${{ steps.tag.outputs.tag }} || true
+            docker run -d \
+              --name yapsy-api-${{ steps.tag.outputs.tag }} \
+              --restart unless-stopped \
+              --network host \
+              -e NODE_ENV=${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }} \
+              -e PORT=${{ secrets.API_PORT }} \
+              -e API_PREFIX=${{ secrets.API_PREFIX }} \
+              -e DB_HOST=${{ secrets.DB_HOST }} \
+              -e DB_PORT=${{ secrets.DB_PORT }} \
+              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
+              -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              -e DB_DATABASE=${{ secrets.DB_DATABASE }} \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }} \
+              -e JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}" \
+              -e JWT_REFRESH_EXPIRES_IN=${{ secrets.JWT_REFRESH_EXPIRES_IN }} \
+              -e ADMIN_JWT_SECRET="${{ secrets.ADMIN_JWT_SECRET }}" \
+              -e ADMIN_JWT_EXPIRES_IN=${{ secrets.ADMIN_JWT_EXPIRES_IN }} \
+              -e ADMIN_JWT_REFRESH_SECRET="${{ secrets.ADMIN_JWT_REFRESH_SECRET }}" \
+              -e ADMIN_JWT_REFRESH_EXPIRES_IN=${{ secrets.ADMIN_JWT_REFRESH_EXPIRES_IN }} \
+              -e ELEVENLABS_API_KEY=${{ secrets.ELEVENLABS_API_KEY }} \
+              -e ELEVENLABS_AGENT_ID=${{ secrets.ELEVENLABS_AGENT_ID }} \
+              -e GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
+              -e GEMINI_MODEL=${{ secrets.GEMINI_MODEL }} \
+              -e RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }} \
+              -e RAZORPAY_KEY_SECRET="${{ secrets.RAZORPAY_KEY_SECRET }}" \
+              -e RAZORPAY_WEBHOOK_SECRET="${{ secrets.RAZORPAY_WEBHOOK_SECRET }}" \
+              -e FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }} \
+              -e FIREBASE_PRIVATE_KEY="${{ secrets.FIREBASE_PRIVATE_KEY }}" \
+              -e FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }} \
+              -e ADMIN_DEFAULT_EMAIL=${{ secrets.ADMIN_DEFAULT_EMAIL }} \
+              -e CORS_ORIGINS="${{ secrets.CORS_ORIGINS }}" \
+              -e LOG_LEVEL=${{ secrets.LOG_LEVEL }} \
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+            docker image prune -f
